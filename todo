@@ -1,0 +1,152 @@
+# AJLA MVP Phase 1 - Todo List
+
+## Project Setup
+- [x] Initialize FastAPI project with virtual environment
+- [x] Create project structure (domain, application, infrastructure, tests directories)
+- [x] Set up requirements.txt with core dependencies (FastAPI, SQLAlchemy, MySQL, Pydantic, etc.)
+- [x] Configure environment variables (.env file)
+- [x] Set up logging configuration
+- [ ] Initialize MySQL database
+
+## Domain Layer - User Aggregate
+- [ ] Create User entity with business rules
+- [ ] Create UserProfile value object
+- [ ] Create UserId value object
+- [ ] Define UserRepository interface
+- [ ] Create UserCreated domain event
+- [ ] Write domain tests for User entity
+
+## Domain Layer - Request Aggregate
+- [ ] Create Request entity
+- [ ] Create RequestId value object
+- [ ] Define RequestRepository interface
+- [ ] Create RequestSubmitted domain event
+- [ ] Write domain tests for Request entity
+
+## Domain Layer - Conversation & Message Aggregates
+- [ ] Create Conversation entity (root aggregate)
+- [ ] Create Message value object
+- [ ] Create ConversationId value object
+- [ ] Create MessageContent value object
+- [ ] Define ConversationRepository interface
+- [ ] Create MessageCreated domain event
+- [ ] Create ConversationStarted domain event
+- [ ] Write domain tests for Conversation aggregate
+
+## Domain Layer - Shared Components
+- [ ] Create base exception classes (DomainException, ValidationError, ResourceNotFound)
+- [ ] Create event bus interface for domain events
+- [ ] Create pagination value object
+- [ ] Write shared domain tests
+
+## Infrastructure Layer - Database Setup
+- [ ] Create SQLAlchemy models for users table
+- [ ] Create SQLAlchemy models for requests table
+- [ ] Create SQLAlchemy models for conversations table
+- [ ] Create SQLAlchemy models for messages table
+- [ ] Configure database session management
+- [ ] Set up connection pooling
+- [ ] Add database indexes (user_id, conversation_id, created_at)
+- [ ] Create database migration scripts
+
+## Infrastructure Layer - Repositories Implementation
+- [ ] Implement UserRepository with SQLAlchemy
+- [ ] Implement RequestRepository with SQLAlchemy
+- [ ] Implement ConversationRepository with SQLAlchemy
+- [ ] Write repository integration tests
+
+## Application Layer - User Use Cases
+- [ ] Create CreateUserUseCase
+- [ ] Create AuthenticateUserUseCase
+- [ ] Create GetCurrentUserUseCase
+- [ ] Create UpdateUserProfileUseCase
+- [ ] Create DTOs (UserCreateDTO, UserResponseDTO, UserLoginDTO)
+- [ ] Write use case tests
+
+## Application Layer - Request Use Cases
+- [ ] Create SubmitRequestUseCase
+- [ ] Create GetRequestUseCase
+- [ ] Create ListUserRequestsUseCase
+- [ ] Create DTOs (RequestCreateDTO, RequestResponseDTO)
+- [ ] Write use case tests
+
+## Application Layer - Conversation Use Cases
+- [ ] Create SendMessageUseCase
+- [ ] Create GetConversationUseCase
+- [ ] Create GetConversationHistoryUseCase
+- [ ] Create DTOs (MessageDTO, ConversationDTO, MessageSendDTO)
+- [ ] Write use case tests
+
+## Infrastructure Layer - Authentication
+- [ ] Implement JWT token generation
+- [ ] Implement JWT token validation
+- [ ] Implement password hashing with bcrypt
+- [ ] Create JWT middleware for FastAPI
+- [ ] Create dependency injection function for current user
+- [ ] Write auth tests
+
+## Infrastructure Layer - FastAPI Web Layer
+- [ ] Create auth router (/api/v1/auth/register, /login, /refresh)
+- [ ] Create users router (/api/v1/users/me, PUT /users/me)
+- [ ] Create requests router (/api/v1/requests POST, GET)
+- [ ] Create conversations router (GET conversation history)
+- [ ] Create error handling middleware
+- [ ] Add CORS middleware
+- [ ] Write router tests
+
+## Infrastructure Layer - WebSocket Implementation
+- [ ] Create WebSocket connection manager class
+- [ ] Create WebSocket authentication handler
+- [ ] Implement /ws/chat/{conversation_id} endpoint
+- [ ] Add message validation in WebSocket
+- [ ] Add message persistence from WebSocket
+- [ ] Add broadcast functionality for active connections
+- [ ] Implement connection tracking and cleanup
+- [ ] Write WebSocket integration tests
+
+## API Integration Testing
+- [ ] Write end-to-end test for user registration flow
+- [ ] Write end-to-end test for user login flow
+- [ ] Write end-to-end test for request submission flow
+- [ ] Write end-to-end test for conversation creation
+- [ ] Write end-to-end test for message sending (HTTP fallback)
+- [ ] Write end-to-end test for WebSocket chat flow
+- [ ] Write end-to-end test for conversation history retrieval
+
+## Documentation
+- [ ] Document API endpoints (generate from FastAPI Swagger)
+- [ ] Document domain layer entities and aggregates
+- [ ] Document use cases and their flows
+- [ ] Create setup and development guide
+- [ ] Document database schema
+- [ ] Create example API requests/responses
+
+## Application Initialization
+- [ ] Create main.py with FastAPI app initialization
+- [ ] Configure all routers
+- [ ] Register all middleware
+- [ ] Set up dependency injection container
+- [ ] Configure logging
+- [ ] Create startup and shutdown events
+
+## Error Handling & Validation
+- [ ] Implement consistent error response format
+- [ ] Add input validation in all DTOs
+- [ ] Add request/response logging middleware
+- [ ] Create custom exception handlers
+- [ ] Write validation tests
+
+## Performance & Configuration
+- [ ] Configure database connection pooling
+- [ ] Set up request timeouts
+- [ ] Add response compression
+- [ ] Configure CORS properly
+- [ ] Set up environment-based configs (dev, prod)
+- [ ] Add performance tests for critical paths
+
+## Deployment Preparation
+- [ ] Create Docker configuration (optional for MVP)
+- [ ] Create CI/CD pipeline basics
+- [ ] Set up deployment documentation
+- [ ] Create health check endpoint
+- [ ] Add graceful shutdown handling
