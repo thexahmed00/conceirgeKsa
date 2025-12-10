@@ -1,31 +1,49 @@
 # AJLA Concierge Platform
 
-Python backend for AJLA - Premium Lifestyle Concierge Platform
+Premium Lifestyle Concierge Platform - FastAPI Backend
+
+**Architecture:** Clean Architecture + Domain-Driven Design (DDD)  
+**Database:** PostgreSQL  
+**Authentication:** JWT  
+**Real-time Chat:** WebSocket  
 
 ## Project Setup
 
 ### Prerequisites
 - Python 3.9+
-- MySQL 8.0+
+- PostgreSQL 14+ (or Docker)
+- Docker & Docker Compose (optional, for containerized PostgreSQL)
 - Virtual environment
 
 ### Installation
 
-1. **Create and activate virtual environment:**
+1. **Clone and navigate to project:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+cd /Users/mohdmustafa/Desktop/conceirgeKsa
 ```
 
-2. **Install dependencies:**
+2. **Create and activate virtual environment:**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+3. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Configure environment variables:**
+4. **Setup environment variables:**
 ```bash
 cp .env.example .env
 # Edit .env with your database credentials and JWT secret
+```
+
+5. **Start PostgreSQL (Docker):**
+```bash
+./setup.sh  # Automated setup (creates .env, starts Docker containers)
+# OR manually:
+docker-compose up -d postgres pgadmin
 ```
 
 4. **Initialize database:**

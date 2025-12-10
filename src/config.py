@@ -5,10 +5,10 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str = "mysql+mysql-connector://root:password@localhost:3306/ajla_db"
+    database_url: str
     
     # JWT
-    jwt_secret_key: str = "your-secret-key-change-this-in-production"
+    jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
     

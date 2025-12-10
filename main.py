@@ -4,6 +4,8 @@ import logging
 
 from src.config import settings
 from src.shared.logger.config import get_logger
+from src.infrastructure.persistence.database import init_db, close_db
+from src.infrastructure.web.api.routers import auth
 
 logger = get_logger(__name__)
 
@@ -26,22 +28,26 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("AJLA API starting up...")
+    init_db()
+    logger.info("Database initialized")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("AJLA API shutting down...")
+    close_db()
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "version": "1.0.0"}
 
-# TODO: Import and include routers
-# from src.infrastructure.web.api.routers import auth, users, requests, conversations
+# Include routers
+app.include_router(auth.router)
 
-# app.include_router(auth.router, prefix="/api/v1/auth")
-# app.include_router(users.router, prefix="/api/v1/users")
-# app.include_router(requests.router, prefix="/api/v1/requests")
-# app.include_router(conversations.router, prefix="/api/v1/conversations")
+# TODO: Import and include remaining routers
+# from src.infrastructure.web.api.routers import users, requests, conversations
+# app.include_router(users.router)
+# app.include_router(requests.router)
+# app.include_router(conversations.router)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,12 +1,12 @@
 # AJLA MVP Phase 1 - Todo List
 
 ## Project Setup
-- [x] Initialize FastAPI project with virtual environment
-- [x] Create project structure (domain, application, infrastructure, tests directories)
-- [x] Set up requirements.txt with core dependencies (FastAPI, SQLAlchemy, MySQL, Pydantic, etc.)
-- [x] Configure environment variables (.env file)
-- [x] Set up logging configuration
-- [ ] Initialize MySQL database
+✔ [x] Initialize FastAPI project with virtual environment @done(25-12-10 10:28)
+✔ [x] Create project structure (domain, application, infrastructure, tests directories) @done(25-12-10 10:28)
+✔ [x] Set up requirements.txt with core dependencies (FastAPI, SQLAlchemy, MySQL, Pydantic, etc.) @done(25-12-10 10:28)
+✔ [x] Configure environment variables (.env file) @done(25-12-10 10:28)
+✔ [x] Set up logging configuration @done(25-12-10 10:28)
+✔ [ ] Initialize postgres database @done(25-12-10 10:28)
 
 ## Domain Layer - User Aggregate
 - [ ] Create User entity with business rules

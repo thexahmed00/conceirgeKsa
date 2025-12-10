@@ -21,3 +21,6 @@ logs/
 *.swp
 *.swo
 *~
+
+# Markdown files
+*.md
