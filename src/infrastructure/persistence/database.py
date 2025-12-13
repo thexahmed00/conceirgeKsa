@@ -6,6 +6,9 @@ from sqlalchemy.pool import NullPool
 
 from src.config import settings
 from src.infrastructure.persistence.models.user import Base
+# Import all models so they're registered with Base.metadata
+from src.infrastructure.persistence.models.request import RequestModel
+from src.infrastructure.persistence.models.conversation import ConversationModel, MessageModel
 
 # Create engine with NullPool for async contexts
 engine = create_engine(

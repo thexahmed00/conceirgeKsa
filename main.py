@@ -6,6 +6,11 @@ from src.config import settings
 from src.shared.logger.config import get_logger
 from src.infrastructure.persistence.database import init_db, close_db
 from src.infrastructure.web.api.routers import auth
+from src.infrastructure.web.api.routers import requests
+from src.infrastructure.web.api.routers import conversations
+from src.infrastructure.web.api.routers import users
+from src.infrastructure.web.api.routers import admin
+from src.infrastructure.web.api.websocket import chat
 
 logger = get_logger(__name__)
 
@@ -42,12 +47,11 @@ async def health_check():
 
 # Include routers
 app.include_router(auth.router)
-
-# TODO: Import and include remaining routers
-# from src.infrastructure.web.api.routers import users, requests, conversations
-# app.include_router(users.router)
-# app.include_router(requests.router)
-# app.include_router(conversations.router)
+app.include_router(users.router)
+app.include_router(requests.router)
+app.include_router(conversations.router)
+app.include_router(admin.router)
+app.include_router(chat.router)
 
 if __name__ == "__main__":
     import uvicorn

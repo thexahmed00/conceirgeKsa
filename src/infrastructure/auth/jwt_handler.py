@@ -77,3 +77,40 @@ def get_user_id_from_token(token: str) -> Optional[int]:
     
     user_id = payload.get("sub")
     return int(user_id) if user_id else None
+
+
+def get_token_claims(token: str) -> Optional[Dict[str, Any]]:
+    """
+    Get all claims from token including is_admin.
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        Dict with user_id, email, is_admin or None if invalid
+    """
+    payload = verify_token(token)
+    if not payload:
+        return None
+    
+    return {
+        "user_id": int(payload.get("sub")) if payload.get("sub") else None,
+        "email": payload.get("email"),
+        "is_admin": payload.get("is_admin", False),
+    }
+
+
+def get_admin_status_from_token(token: str) -> bool:
+    """
+    Check if user is admin from token.
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        True if user is admin, False otherwise
+    """
+    claims = get_token_claims(token)
+    if not claims:
+        return False
+    return claims.get("is_admin", False)

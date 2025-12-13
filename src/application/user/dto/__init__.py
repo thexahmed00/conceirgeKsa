@@ -46,3 +46,11 @@ class TokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
     expires_in: int = Field(..., description="Expiration time in seconds")
+
+
+class UserUpdateRequest(BaseModel):
+    """Request DTO for updating user profile."""
+    
+    phone_number: Optional[str] = Field(None, description="Phone number")
+    first_name: Optional[str] = Field(None, min_length=1, description="First name")
+    last_name: Optional[str] = Field(None, min_length=1, description="Last name")

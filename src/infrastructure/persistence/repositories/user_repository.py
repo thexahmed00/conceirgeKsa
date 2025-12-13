@@ -98,4 +98,29 @@ class PostgreSQLUserRepository:
         )
         user.tier = model.tier
         user.is_active = model.is_active
+        user.is_admin = getattr(model, 'is_admin', False)
+        return user
+
+    async def update(self, user: User) -> User:
+        """Update an existing user.
+        
+        Args:
+            user: Domain User entity with updated fields
+            
+        Returns:
+            Updated user entity
+        """
+        model = self._session.query(UserModel).filter(
+            UserModel.id == user.user_id
+        ).first()
+        
+        if model:
+            model.first_name = user.first_name
+            model.last_name = user.last_name
+            model.full_name = f"{user.first_name} {user.last_name}"
+            model.phone_number = user.phone_number
+            self._session.commit()
+            self._session.refresh(model)
+            return self._to_entity(model)
+        
         return user

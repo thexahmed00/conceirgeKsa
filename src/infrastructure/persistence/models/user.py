@@ -24,6 +24,7 @@ class UserModel(Base):
     phone_number = Column(String(20), nullable=True)
     tier = Column(Integer, nullable=False, default=5000)
     is_active = Column(Boolean, nullable=False, default=True)
+    is_admin = Column(Boolean, nullable=False, default=False)  # Admin flag
     
     # Timestamps
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)

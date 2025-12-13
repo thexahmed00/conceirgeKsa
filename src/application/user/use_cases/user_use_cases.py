@@ -97,9 +97,13 @@ class AuthenticateUserUseCase:
         if not user.authenticate(request.password):
             raise InvalidUserError("Invalid password")
 
-        # Generate JWT token
+        # Generate JWT token (include is_admin flag)
         token = create_access_token(
-            data={"sub": str(user.user_id), "email": user.email},
+            data={
+                "sub": str(user.user_id),
+                "email": user.email,
+                "is_admin": getattr(user, 'is_admin', False),
+            },
             expires_delta=timedelta(hours=24),
         )
 
