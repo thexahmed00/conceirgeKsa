@@ -1,7 +1,6 @@
 """Conversation API endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, status, Query
 
 from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
@@ -14,9 +13,12 @@ from src.application.conversation.use_cases.conversation_use_cases import (
     SendMessageUseCase,
     ListUserConversationsUseCase,
 )
-from src.infrastructure.persistence.repositories.conversation_repository import ConversationRepository
-from src.infrastructure.web.dependencies import get_db, get_current_user
-from src.domain.conversation.entities.conversation import InvalidMessageError
+from src.infrastructure.web.dependencies import (
+    get_conversation_use_case,
+    get_current_user,
+    get_list_user_conversations_use_case,
+    get_send_message_use_case,
+)
 from src.shared.logger.config import get_logger
 
 logger = get_logger(__name__)
@@ -32,12 +34,9 @@ def list_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    use_case: ListUserConversationsUseCase = Depends(get_list_user_conversations_use_case),
 ) -> ConversationListResponseDTO:
     """List all conversations for the current user."""
-    conversation_repo = ConversationRepository(db)
-    use_case = ListUserConversationsUseCase(conversation_repo)
-    
     conversations = use_case.execute(user_id, skip, limit)
     
     return ConversationListResponseDTO(
@@ -52,19 +51,10 @@ def list_conversations(
 def get_conversation(
     conversation_id: int,
     user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    use_case: GetConversationUseCase = Depends(get_conversation_use_case),
 ) -> ConversationResponseDTO:
     """Get a conversation with all messages."""
-    try:
-        conversation_repo = ConversationRepository(db)
-        use_case = GetConversationUseCase(conversation_repo)
-        
-        return use_case.execute(conversation_id, user_id)
-    
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    return use_case.execute(conversation_id, user_id)
 
 
 @router.post("/{conversation_id}/messages", response_model=MessageResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -72,21 +62,9 @@ def send_message(
     conversation_id: int,
     dto: MessageCreateDTO,
     user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    use_case: SendMessageUseCase = Depends(get_send_message_use_case),
 ) -> MessageResponseDTO:
     """Send a message in a conversation."""
-    try:
-        conversation_repo = ConversationRepository(db)
-        use_case = SendMessageUseCase(conversation_repo)
-        
-        result = use_case.execute(conversation_id, user_id, dto)
-        logger.info(f"Message sent: conversation={conversation_id}, user={user_id}")
-        
-        return result
-    
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
-    except InvalidMessageError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    result = use_case.execute(conversation_id, user_id, dto)
+    logger.info(f"Message sent: conversation={conversation_id}, user={user_id}")
+    return result

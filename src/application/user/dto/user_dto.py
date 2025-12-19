@@ -56,6 +56,7 @@ class UserResponse(BaseModel):
     phone_number: Optional[str] = Field(None, description="Phone number")
     tier: int = Field(..., description="User tier (5000, 25000, 100000)")
     is_active: bool = Field(..., description="Whether user is active")
+    is_admin: bool = Field(default=False, description="Whether user is an admin")
     created_at: datetime = Field(..., description="Account creation date")
     updated_at: datetime = Field(..., description="Last update date")
     
@@ -71,6 +72,7 @@ class UserResponse(BaseModel):
                 "phone_number": "+966501234567",
                 "tier": 5000,
                 "is_active": True,
+                "is_admin": False,
                 "created_at": "2024-01-01T12:00:00Z",
                 "updated_at": "2024-01-15T15:30:00Z",
             }

@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import logging
 
 from src.config import settings
@@ -11,6 +12,13 @@ from src.infrastructure.web.api.routers import conversations
 from src.infrastructure.web.api.routers import users
 from src.infrastructure.web.api.routers import admin
 from src.infrastructure.web.api.websocket import chat
+from src.domain.shared.exceptions import (
+    AccessDeniedError,
+    DomainException,
+    DuplicateResourceError,
+    InvalidUserError,
+    ResourceNotFoundError,
+)
 
 logger = get_logger(__name__)
 
@@ -20,6 +28,33 @@ app = FastAPI(
     description="Premium lifestyle concierge platform API",
     version="1.0.0",
 )
+
+
+@app.exception_handler(ResourceNotFoundError)
+async def resource_not_found_handler(_: Request, exc: ResourceNotFoundError):
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(AccessDeniedError)
+async def access_denied_handler(_: Request, exc: AccessDeniedError):
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
+@app.exception_handler(DuplicateResourceError)
+async def duplicate_resource_handler(_: Request, exc: DuplicateResourceError):
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(InvalidUserError)
+async def invalid_user_handler(_: Request, exc: InvalidUserError):
+    # Used by registration flow; login still custom-handled for WWW-Authenticate header.
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+@app.exception_handler(DomainException)
+async def domain_exception_handler(_: Request, exc: DomainException):
+    # Fallback for domain validation errors (InvalidRequestError, InvalidMessageError, etc.)
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 # Add CORS middleware
 app.add_middleware(

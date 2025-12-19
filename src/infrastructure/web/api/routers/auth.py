@@ -1,16 +1,24 @@
 """Authentication API endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
-from src.application.user.dto import UserCreateRequest, UserLoginRequest, UserResponse, TokenResponse
+from src.application.user.dto.user_dto import (
+    TokenResponse,
+    UserCreateRequest,
+    UserLoginRequest,
+    UserResponse,
+)
 from src.application.user.use_cases.user_use_cases import (
     CreateUserUseCase,
     AuthenticateUserUseCase,
     GetUserUseCase,
 )
-from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
-from src.infrastructure.web.dependencies import get_db, get_current_user
+from src.infrastructure.web.dependencies import (
+    get_authenticate_user_use_case,
+    get_create_user_use_case,
+    get_current_user,
+    get_user_use_case,
+)
 from src.domain.shared.exceptions import InvalidUserError, DuplicateResourceError
 from src.shared.logger.config import get_logger
 
@@ -25,25 +33,10 @@ router = APIRouter(
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     request: UserCreateRequest,
-    db: Session = Depends(get_db),
+    use_case: CreateUserUseCase = Depends(get_create_user_use_case),
 ) -> UserResponse:
-    """
-    Register new user account.
-    
-    Args:
-        request: Registration request with email, password, name
-        db: Database session
-        
-    Returns:
-        Created user response
-        
-    Raises:
-        HTTPException 400: If email already exists
-        HTTPException 422: If validation fails
-    """
+
     try:
-        user_repo = PostgreSQLUserRepository(db)
-        use_case = CreateUserUseCase(user_repo)
         user_response = await use_case.execute(request)
         
         logger.info(f"User registered: {user_response.email}")
@@ -72,7 +65,7 @@ async def register(
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def login(
     request: UserLoginRequest,
-    db: Session = Depends(get_db),
+    use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case),
 ) -> TokenResponse:
     """
     Authenticate user and return JWT token.
@@ -88,8 +81,6 @@ async def login(
         HTTPException 401: If credentials invalid
     """
     try:
-        user_repo = PostgreSQLUserRepository(db)
-        use_case = AuthenticateUserUseCase(user_repo)
         user_response, token = await use_case.execute(request)
         
         logger.info(f"User authenticated: {user_response.email}")
@@ -117,7 +108,7 @@ async def login(
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
     current_user: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    use_case: GetUserUseCase = Depends(get_user_use_case),
 ) -> UserResponse:
     """
     Get current authenticated user profile.
@@ -133,8 +124,6 @@ async def get_current_user_profile(
         HTTPException 404: If user not found
     """
     try:
-        user_repo = PostgreSQLUserRepository(db)
-        use_case = GetUserUseCase(user_repo)
         user_response = await use_case.execute(current_user)
         
         return user_response

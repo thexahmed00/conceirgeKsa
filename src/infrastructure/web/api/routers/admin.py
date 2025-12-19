@@ -1,9 +1,7 @@
 """Admin API endpoints for concierge agents."""
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
 
 from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
@@ -16,9 +14,14 @@ from src.application.conversation.use_cases.conversation_use_cases import (
     SendMessageUseCase,
     ListAllConversationsUseCase,
 )
-from src.infrastructure.persistence.repositories.conversation_repository import ConversationRepository
-from src.infrastructure.web.dependencies import get_db, get_current_user
-from src.domain.conversation.entities.conversation import InvalidMessageError
+from src.domain.user.repository.user_repository import UserRepository
+from src.infrastructure.web.dependencies import (
+    get_conversation_use_case,
+    get_current_user,
+    get_list_all_conversations_use_case,
+    get_send_message_use_case,
+    get_user_repository,
+)
 from src.shared.logger.config import get_logger
 
 logger = get_logger(__name__)
@@ -35,11 +38,11 @@ class AdminInfo(BaseModel):
     is_admin: bool
 
 
-async def get_admin_user(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_admin_user(
+    user_id: int = Depends(get_current_user),
+    user_repo: UserRepository = Depends(get_user_repository),
+):
     """Dependency to ensure user is an admin."""
-    from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
-    
-    user_repo = PostgreSQLUserRepository(db)
     user = await user_repo.find_by_id(user_id)
     
     if not user or not getattr(user, 'is_admin', False):
@@ -64,12 +67,9 @@ def list_all_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     admin_id: int = Depends(get_admin_user),
-    db: Session = Depends(get_db),
+    use_case: ListAllConversationsUseCase = Depends(get_list_all_conversations_use_case),
 ) -> ConversationListResponseDTO:
     """List all conversations (admin only)."""
-    conversation_repo = ConversationRepository(db)
-    use_case = ListAllConversationsUseCase(conversation_repo)
-    
     conversations, total = use_case.execute(skip, limit)
     
     logger.info(f"Admin {admin_id} listed all conversations: {total} total")
@@ -86,18 +86,10 @@ def list_all_conversations(
 def get_conversation(
     conversation_id: int,
     admin_id: int = Depends(get_admin_user),
-    db: Session = Depends(get_db),
+    use_case: GetConversationUseCase = Depends(get_conversation_use_case),
 ) -> ConversationResponseDTO:
     """Get a conversation with all messages (admin access)."""
-    try:
-        conversation_repo = ConversationRepository(db)
-        use_case = GetConversationUseCase(conversation_repo)
-        
-        # Admin can access any conversation
-        return use_case.execute(conversation_id, admin_id, is_admin=True)
-    
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return use_case.execute(conversation_id, admin_id, is_admin=True)
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=MessageResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -105,20 +97,9 @@ def send_admin_message(
     conversation_id: int,
     dto: MessageCreateDTO,
     admin_id: int = Depends(get_admin_user),
-    db: Session = Depends(get_db),
+    use_case: SendMessageUseCase = Depends(get_send_message_use_case),
 ) -> MessageResponseDTO:
     """Send a message as admin in any conversation."""
-    try:
-        conversation_repo = ConversationRepository(db)
-        use_case = SendMessageUseCase(conversation_repo)
-        
-        # Send message as admin
-        result = use_case.execute(conversation_id, admin_id, dto, sender_type="admin")
-        logger.info(f"Admin {admin_id} sent message in conversation {conversation_id}")
-        
-        return result
-    
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except InvalidMessageError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    result = use_case.execute(conversation_id, admin_id, dto, sender_type="admin")
+    logger.info(f"Admin {admin_id} sent message in conversation {conversation_id}")
+    return result

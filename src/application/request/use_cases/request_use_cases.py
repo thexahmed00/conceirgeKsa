@@ -3,9 +3,10 @@
 from typing import List
 from src.domain.request.entities.request import Request
 from src.domain.conversation.entities.conversation import Conversation
-from src.infrastructure.persistence.repositories.request_repository import RequestRepository
-from src.infrastructure.persistence.repositories.conversation_repository import ConversationRepository
+from src.domain.request.repository.request_repository import RequestRepository
+from src.domain.conversation.repository.conversation_repository import ConversationRepository
 from src.application.request.dto.request_dto import RequestCreateDTO, RequestResponseDTO
+from src.domain.shared.exceptions import AccessDeniedError, ResourceNotFoundError
 
 
 class SubmitRequestUseCase:
@@ -69,11 +70,11 @@ class GetRequestUseCase:
         request = self.request_repo.find_by_id(request_id)
         
         if not request:
-            raise ValueError(f"Request {request_id} not found")
+            raise ResourceNotFoundError(f"Request {request_id} not found")
         
         # Check ownership
         if request.user_id != user_id:
-            raise PermissionError("You don't have access to this request")
+            raise AccessDeniedError("You don't have access to this request")
         
         # Get conversation ID
         conversation = self.conversation_repo.find_by_request_id(request_id)

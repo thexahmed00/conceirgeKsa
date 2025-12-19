@@ -1,12 +1,10 @@
 """User Profile API endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
-from src.application.user.dto import UserResponse, UserUpdateRequest
-from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
-from src.infrastructure.web.dependencies import get_db, get_current_user
-from src.domain.shared.exceptions import InvalidUserError
+from src.application.user.dto.user_dto import UserResponse, UserUpdateRequest
+from src.domain.user.repository.user_repository import UserRepository
+from src.infrastructure.web.dependencies import get_current_user, get_user_repository
 from src.shared.logger.config import get_logger
 
 logger = get_logger(__name__)
@@ -20,10 +18,9 @@ router = APIRouter(
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
     user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserResponse:
     """Get the current authenticated user's profile."""
-    user_repo = PostgreSQLUserRepository(db)
     user = await user_repo.find_by_id(user_id)
     
     if not user:
@@ -42,7 +39,7 @@ async def get_current_user_profile(
         tier=getattr(user, 'tier', 5000),
         is_active=getattr(user, 'is_active', True),
         created_at=user.created_at,
-        admin=getattr(user, 'is_admin', False),
+        is_admin=getattr(user, 'is_admin', False),
         updated_at=user.updated_at,
     )
 
@@ -51,10 +48,9 @@ async def get_current_user_profile(
 async def update_current_user_profile(
     update_data: UserUpdateRequest,
     user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserResponse:
     """Update the current authenticated user's profile."""
-    user_repo = PostgreSQLUserRepository(db)
     user = await user_repo.find_by_id(user_id)
     
     if not user:
@@ -84,8 +80,8 @@ async def update_current_user_profile(
         full_name=f"{updated_user.first_name} {updated_user.last_name}",
         phone_number=updated_user.phone_number,
         tier=getattr(updated_user, 'tier', 5000),
-        
         is_active=getattr(updated_user, 'is_active', True),
+        is_admin=getattr(updated_user, 'is_admin', False),
         created_at=updated_user.created_at,
         updated_at=updated_user.updated_at,
     )

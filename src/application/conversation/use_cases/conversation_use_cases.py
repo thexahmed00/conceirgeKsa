@@ -2,12 +2,13 @@
 
 from typing import List
 from src.domain.conversation.entities.conversation import Message
-from src.infrastructure.persistence.repositories.conversation_repository import ConversationRepository
+from src.domain.conversation.repository.conversation_repository import ConversationRepository
 from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
     MessageResponseDTO,
     ConversationResponseDTO,
 )
+from src.domain.shared.exceptions import AccessDeniedError, ResourceNotFoundError
 
 
 class GetConversationUseCase:
@@ -20,11 +21,11 @@ class GetConversationUseCase:
         conversation = self.conversation_repo.find_by_id(conversation_id)
         
         if not conversation:
-            raise ValueError(f"Conversation {conversation_id} not found")
+            raise ResourceNotFoundError(f"Conversation {conversation_id} not found")
         
         # Check ownership (admins can access any conversation)
         if not is_admin and conversation.user_id != user_id:
-            raise PermissionError("You don't have access to this conversation")
+            raise AccessDeniedError("You don't have access to this conversation")
         
         return ConversationResponseDTO(
             id=conversation.conversation_id,
@@ -62,11 +63,11 @@ class SendMessageUseCase:
         conversation = self.conversation_repo.find_by_id(conversation_id)
         
         if not conversation:
-            raise ValueError(f"Conversation {conversation_id} not found")
+            raise ResourceNotFoundError(f"Conversation {conversation_id} not found")
         
         # Check access (user or admin)
         if sender_type == "user" and conversation.user_id != user_id:
-            raise PermissionError("You don't have access to this conversation")
+            raise AccessDeniedError("You don't have access to this conversation")
         
         # Create message
         message = Message.create(

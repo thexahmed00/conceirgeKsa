@@ -44,3 +44,8 @@ class ResourceNotFoundError(DomainException):
 class DuplicateResourceError(DomainException):
     """Raised when trying to create a resource that already exists."""
     pass
+
+
+class AccessDeniedError(DomainException):
+    """Raised when a user is not allowed to access a resource."""
+    pass

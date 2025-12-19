@@ -3,9 +3,9 @@
 from datetime import datetime, timedelta
 from typing import Tuple
 
-from src.application.user.dto import UserCreateRequest, UserLoginRequest, UserResponse
+from src.application.user.dto.user_dto import UserCreateRequest, UserLoginRequest, UserResponse
 from src.domain.user.entities.user import User
-from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
+from src.domain.user.repository.user_repository import UserRepository
 from src.domain.shared.exceptions import InvalidUserError, DuplicateResourceError
 from src.shared.utils.password_utils import hash_password
 from src.infrastructure.auth.jwt_handler import create_access_token
@@ -14,7 +14,7 @@ from src.infrastructure.auth.jwt_handler import create_access_token
 class CreateUserUseCase:
     """User registration use case."""
 
-    def __init__(self, user_repository: PostgreSQLUserRepository):
+    def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
     async def execute(self, request: UserCreateRequest) -> UserResponse:
@@ -73,7 +73,7 @@ class CreateUserUseCase:
 class AuthenticateUserUseCase:
     """User login use case."""
 
-    def __init__(self, user_repository: PostgreSQLUserRepository):
+    def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
     async def execute(self, request: UserLoginRequest) -> Tuple[UserResponse, str]:
@@ -133,7 +133,7 @@ class AuthenticateUserUseCase:
 class GetUserUseCase:
     """Retrieve user by ID."""
 
-    def __init__(self, user_repository: PostgreSQLUserRepository):
+    def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
     async def execute(self, user_id: int) -> UserResponse:
