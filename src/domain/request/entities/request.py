@@ -20,6 +20,7 @@ class Request:
         self,
         request_id: Optional[int],
         user_id: int,
+        title: str,
         request_type: str,
         description: str,
         status: str = "new",
@@ -28,6 +29,7 @@ class Request:
     ):
         self.request_id = request_id
         self.user_id = user_id
+        self.title = title
         self.request_type = request_type
         self.description = description
         self.status = status
@@ -35,7 +37,7 @@ class Request:
         self.updated_at = updated_at or datetime.utcnow()
     
     @classmethod
-    def create(cls, user_id: int, request_type: str, description: str) -> "Request":
+    def create(cls, user_id: int, title: str, request_type: str, description: str) -> "Request":
         """Factory method to create a new request with validation."""
         # Validate type
         if request_type not in cls.VALID_TYPES:
@@ -50,6 +52,7 @@ class Request:
         return cls(
             request_id=None,
             user_id=user_id,
+            title=title.strip(),
             request_type=request_type,
             description=description.strip(),
             status="new",
