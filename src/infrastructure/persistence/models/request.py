@@ -12,6 +12,7 @@ class RequestModel(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
     type = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
     status = Column(String(50), nullable=False, default="new")

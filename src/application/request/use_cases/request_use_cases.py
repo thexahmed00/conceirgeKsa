@@ -24,6 +24,7 @@ class SubmitRequestUseCase:
         # 1. Create request entity (validates business rules)
         request = Request.create(
             user_id=user_id,
+            title=dto.title,
             request_type=dto.request_type,
             description=dto.description,
         )
@@ -50,6 +51,7 @@ class SubmitRequestUseCase:
         return RequestResponseDTO(
             id=saved_request.request_id,
             user_id=saved_request.user_id,
+            title=saved_request.title,
             request_type=saved_request.request_type,
             description=saved_request.description,
             status=saved_request.status,
