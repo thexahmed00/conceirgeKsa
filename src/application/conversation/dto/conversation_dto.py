@@ -34,6 +34,8 @@ class ConversationResponseDTO(BaseModel):
     """Output for conversation responses."""
     id: int
     request_id: int
+    title: Optional[str] = None
+    description: Optional[str] = None
     user_id: int
     created_at: datetime
     messages: List[MessageResponseDTO] = []

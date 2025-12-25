@@ -84,6 +84,7 @@ class GetRequestUseCase:
         return RequestResponseDTO(
             id=request.request_id,
             user_id=request.user_id,
+            title=request.title,
             request_type=request.request_type,
             description=request.description,
             status=request.status,
@@ -106,6 +107,7 @@ class ListUserRequestsUseCase:
             RequestResponseDTO(
                 id=r.request_id,
                 user_id=r.user_id,
+                title=r.title,
                 request_type=r.request_type,
                 description=r.description,
                 status=r.status,

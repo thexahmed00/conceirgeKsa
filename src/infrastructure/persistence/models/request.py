@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Index
+from sqlalchemy.orm import relationship
 from src.infrastructure.persistence.models.user import Base
 
 
@@ -18,6 +19,9 @@ class RequestModel(Base):
     status = Column(String(50), nullable=False, default="new")
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    conversation = relationship("ConversationModel", back_populates="request", uselist=False)
     
     __table_args__ = (
         Index('idx_requests_user_id', 'user_id'),

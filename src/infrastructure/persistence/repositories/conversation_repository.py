@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 
 from src.domain.conversation.entities.conversation import Conversation, Message
 from src.infrastructure.persistence.models.conversation import ConversationModel, MessageModel
@@ -30,6 +31,8 @@ class ConversationRepository:
         """Find conversation by ID with messages."""
         db_conversation = (
             self.db.query(ConversationModel)
+            .options(joinedload(ConversationModel.messages))
+            .options(joinedload(ConversationModel.request))
             .filter(ConversationModel.id == conversation_id)
             .first()
         )
@@ -67,8 +70,13 @@ class ConversationRepository:
     
     def find_by_user_id(self, user_id: int, skip: int = 0, limit: int = 20) -> List[Conversation]:
         """Find all conversations for a user."""
+        from src.infrastructure.persistence.models.request import RequestModel
+        
         db_conversations = (
             self.db.query(ConversationModel)
+            .join(RequestModel, ConversationModel.request_id == RequestModel.id)
+            .options(joinedload(ConversationModel.request))
+            .options(joinedload(ConversationModel.messages))
             .filter(ConversationModel.user_id == user_id)
             .order_by(ConversationModel.created_at.desc())
             .offset(skip)
@@ -81,6 +89,9 @@ class ConversationRepository:
         """Find all conversations (admin use)."""
         db_conversations = (
             self.db.query(ConversationModel)
+            .options(joinedload(ConversationModel.request))
+            .options(joinedload(ConversationModel.user))
+            .options(joinedload(ConversationModel.messages))
             .order_by(ConversationModel.created_at.desc())
             .offset(skip)
             .limit(limit)
@@ -125,12 +136,28 @@ class ConversationRepository:
         self, model: ConversationModel, messages: List[MessageModel] = None
     ) -> Conversation:
         """Convert ORM model to domain entity."""
+        # Extract title and description from the related request
+        title = None
+        description = None
+        if hasattr(model, 'request') and model.request:
+            title = model.request.title
+            description = model.request.description
+        
+        # Use provided messages or load from model
+        message_entities = []
+        if messages is not None:
+            message_entities = [self._message_to_entity(m) for m in messages]
+        elif hasattr(model, 'messages') and model.messages:
+            message_entities = [self._message_to_entity(m) for m in model.messages]
+        
         return Conversation(
             conversation_id=model.id,
             request_id=model.request_id,
             user_id=model.user_id,
+            title=title,
+            description=description,
             created_at=model.created_at,
-            messages=[self._message_to_entity(m) for m in (messages or [])],
+            messages=message_entities,
         )
     
     def _message_to_entity(self, model: MessageModel) -> Message:

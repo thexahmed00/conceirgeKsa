@@ -178,16 +178,21 @@ CREATE TABLE messages (
 
 ```
 fastapi==0.109.0
-uvicorn==0.27.0
-sqlalchemy==2.0.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
-pydantic==2.5.0
+pydantic==2.5.3
 pydantic-settings==2.1.0
-python-jose==3.3.0
-passlib==1.7.4
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
 bcrypt==4.1.1
 python-multipart==0.0.6
 websockets==12.0
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+python-dotenv==1.0.0
+email-validator==2.1.0
 ```
 
 ## Known Constraints & Edge Cases (MVP Phase)
@@ -239,14 +244,15 @@ websockets==12.0
 
   /infrastructure      # Database, external services, repositories
     /persistence
-      /mysql           # SQLAlchemy models, session management
+      database.py      # SQLAlchemy session management
+      /models          # SQLAlchemy ORM models
       /repositories    # Repository implementations
     /web
       /api
         /routers       # FastAPI routes (/api/v1/users, /api/v1/requests, etc)
         /websocket     # WebSocket handlers for chat
         /middleware    # JWT auth middleware, error handling
-        /dependencies  # FastAPI dependency injection (get_db, get_current_user)
+      /dependencies    # FastAPI dependency injection (get_db, get_current_user)
     /auth              # JWT token generation, password hashing
     /services          # External API clients (payment, SMS, etc - future)
 
@@ -274,15 +280,6 @@ websockets==12.0
 4. **Message History**: Retrieve and display full conversation threads
 5. **User Profile**: Profile retrieval and preference updates
 6. **Error Handling**: Consistent error responses across all endpoints
-
-## Known Constraints & Edge Cases (MVP Phase)
-
-- **WebSocket Reconnection**: Implement exponential backoff on client side
-- **Message Ordering**: Use database `created_at` timestamp for consistent ordering
-- **Concurrent Messages**: Database ensures FIFO via autoincrement ID
-- **User Permissions**: Always verify `user_id` from JWT matches resource ownership
-- **Database Connection**: Use connection pooling to handle concurrent WebSocket connections
-- **Offline Messages**: Store messages immediately in DB before broadcasting (no in-memory queue)
 
 ## Future Phases (Post-MVP)
 
@@ -331,7 +328,7 @@ The current **monolithic architecture is designed for easy decomposition into mi
 ### Migration Strategy
 
 **Phase 1 (Current):** Monolith with clear domain boundaries
-- One FastAPI app, one MySQL database
+- One FastAPI app, one PostgreSQL database
 - Domain layer separation enables easy extraction
 - Events published locally via in-memory event bus
 
@@ -380,7 +377,7 @@ Analytics Service listens: Records metrics
 1. **Extract User Service:**
    - Copy `/src/domain/user/`, `/src/application/user/`
    - Create new `user-service/` repo with its own `main.py`
-   - Add PostgreSQL/MySQL for users table
+  - Add PostgreSQL for users table
    - Expose `/api/v1/auth/`, `/api/v1/users/` endpoints
    - Publish `UserCreated`, `UserAuthenticated` events
 
@@ -451,7 +448,7 @@ services:
   request-service: FastAPI port 8002
   conversation-service: FastAPI port 8003
   event-bus: RabbitMQ port 5672
-  mysql: MySQL port 3306
+  postgres: PostgreSQL port 5432
   redis: Redis port 6379
 ```
 
@@ -462,7 +459,7 @@ k8s:
   - deployment: user-service (replicas: 2)
   - deployment: request-service (replicas: 2)
   - deployment: conversation-service (replicas: 3)  # High traffic
-  - statefulset: MySQL
+  - statefulset: PostgreSQL
   - statefulset: RabbitMQ
   - statefulset: Redis
   - ingress: Route HTTP/WebSocket

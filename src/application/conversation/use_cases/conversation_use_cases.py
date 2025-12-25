@@ -27,9 +27,13 @@ class GetConversationUseCase:
         if not is_admin and conversation.user_id != user_id:
             raise AccessDeniedError("You don't have access to this conversation")
         
+
+        
         return ConversationResponseDTO(
             id=conversation.conversation_id,
             request_id=conversation.request_id,
+            title=conversation.title,
+            description=conversation.description,
             user_id=conversation.user_id,
             created_at=conversation.created_at,
             messages=[
@@ -103,9 +107,21 @@ class ListUserConversationsUseCase:
             ConversationResponseDTO(
                 id=c.conversation_id,
                 request_id=c.request_id,
+                title=c.title,
+                description=c.description,
                 user_id=c.user_id,
                 created_at=c.created_at,
-                messages=[],  # Don't load messages for list view
+                messages=[
+                    MessageResponseDTO(
+                        id=m.message_id,
+                        conversation_id=m.conversation_id,
+                        sender_id=m.sender_id,
+                        sender_type=m.sender_type,
+                        content=m.content,
+                        created_at=m.created_at,
+                    )
+                    for m in c.messages
+                ],
             )
             for c in conversations
         ]
@@ -126,6 +142,8 @@ class ListAllConversationsUseCase:
                 ConversationResponseDTO(
                     id=c.conversation_id,
                     request_id=c.request_id,
+                    title=c.title,
+                    description=c.description,
                     user_id=c.user_id,
                     created_at=c.created_at,
                     messages=[],  # Don't load messages for list view

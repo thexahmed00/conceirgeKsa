@@ -66,12 +66,16 @@ class Conversation:
         conversation_id: Optional[int],
         request_id: int,
         user_id: int,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
         created_at: Optional[datetime] = None,
         messages: Optional[List[Message]] = None,
     ):
         self.conversation_id = conversation_id
         self.request_id = request_id
         self.user_id = user_id
+        self.title = title
+        self.description = description
         self.created_at = created_at or datetime.utcnow()
         self.messages = messages or []
     
