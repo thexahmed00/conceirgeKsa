@@ -2,10 +2,12 @@
 
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.domain.conversation.entities.conversation import Conversation, Message
 from src.infrastructure.persistence.models.conversation import ConversationModel, MessageModel
+from src.infrastructure.persistence.models.request import RequestModel
+from src.infrastructure.persistence.models.service import ServiceVendorModel, VendorImageModel
 
 
 class ConversationRepository:
@@ -69,14 +71,21 @@ class ConversationRepository:
         return self._to_entity(db_conversation, db_messages)
     
     def find_by_user_id(self, user_id: int, skip: int = 0, limit: int = 20) -> List[Conversation]:
-        """Find all conversations for a user."""
-        from src.infrastructure.persistence.models.request import RequestModel
-        
+        """Find all conversations for a user with eager loading."""
         db_conversations = (
             self.db.query(ConversationModel)
             .join(RequestModel, ConversationModel.request_id == RequestModel.id)
-            .options(joinedload(ConversationModel.request))
-            .options(joinedload(ConversationModel.messages))
+            .options(
+                joinedload(ConversationModel.request)
+                .joinedload(RequestModel.vendor)
+                .joinedload(ServiceVendorModel.category)
+            )
+            .options(
+                joinedload(ConversationModel.request)
+                .joinedload(RequestModel.vendor)
+                .selectinload(ServiceVendorModel.images)
+            )
+            .options(selectinload(ConversationModel.messages))
             .filter(ConversationModel.user_id == user_id)
             .order_by(ConversationModel.created_at.desc())
             .offset(skip)
@@ -86,12 +95,21 @@ class ConversationRepository:
         return [self._to_entity(c) for c in db_conversations]
     
     def find_all(self, skip: int = 0, limit: int = 20) -> List[Conversation]:
-        """Find all conversations (admin use)."""
+        """Find all conversations (admin use) with eager loading."""
         db_conversations = (
             self.db.query(ConversationModel)
-            .options(joinedload(ConversationModel.request))
+            .options(
+                joinedload(ConversationModel.request)
+                .joinedload(RequestModel.vendor)
+                .joinedload(ServiceVendorModel.category)
+            )
+            .options(
+                joinedload(ConversationModel.request)
+                .joinedload(RequestModel.vendor)
+                .selectinload(ServiceVendorModel.images)
+            )
             .options(joinedload(ConversationModel.user))
-            .options(joinedload(ConversationModel.messages))
+            .options(selectinload(ConversationModel.messages))
             .order_by(ConversationModel.created_at.desc())
             .offset(skip)
             .limit(limit)
@@ -135,13 +153,35 @@ class ConversationRepository:
     def _to_entity(
         self, model: ConversationModel, messages: List[MessageModel] = None
     ) -> Conversation:
-        """Convert ORM model to domain entity."""
+        """Convert ORM model to domain entity using eagerly loaded relationships."""
         # Extract title and description from the related request
         title = None
         description = None
+        vendor_id = None
+        vendor_name = None
+        vendor_image_url = None
+        category_slug = None
+        
         if hasattr(model, 'request') and model.request:
             title = model.request.title
             description = model.request.description
+            vendor_id = model.request.vendor_id
+            
+            # Use eagerly loaded vendor info (no additional queries)
+            vendor = getattr(model.request, 'vendor', None)
+            if vendor:
+                vendor_name = vendor.name
+                category = getattr(vendor, 'category', None)
+                if category:
+                    category_slug = category.slug
+                # Get first hero image from eagerly loaded images
+                images = getattr(vendor, 'images', []) or []
+                hero_images = sorted(
+                    [img for img in images if img.image_type == "hero"],
+                    key=lambda x: x.display_order
+                )
+                if hero_images:
+                    vendor_image_url = hero_images[0].image_url
         
         # Use provided messages or load from model
         message_entities = []
@@ -156,6 +196,10 @@ class ConversationRepository:
             user_id=model.user_id,
             title=title,
             description=description,
+            vendor_id=vendor_id,
+            vendor_name=vendor_name,
+            vendor_image_url=vendor_image_url,
+            category_slug=category_slug,
             created_at=model.created_at,
             messages=message_entities,
         )

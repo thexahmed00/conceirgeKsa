@@ -13,6 +13,7 @@ class RequestModel(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    vendor_id = Column(Integer, ForeignKey("service_vendors.id"), nullable=True)
     title = Column(String(255), nullable=False)
     type = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
@@ -22,6 +23,7 @@ class RequestModel(Base):
     
     # Relationships
     conversation = relationship("ConversationModel", back_populates="request", uselist=False)
+    vendor = relationship("ServiceVendorModel", backref="requests")
     
     __table_args__ = (
         Index('idx_requests_user_id', 'user_id'),

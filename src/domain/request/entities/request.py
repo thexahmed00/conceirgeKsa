@@ -13,7 +13,6 @@ class InvalidRequestError(DomainException):
 class Request:
     """Request aggregate - represents a concierge service request."""
     
-    VALID_TYPES = ["travel", "dining", "events", "shopping"]
     VALID_STATUSES = ["new", "assigned", "in_progress", "fulfilled", "cancelled"]
     
     def __init__(
@@ -21,30 +20,33 @@ class Request:
         request_id: Optional[int],
         user_id: int,
         title: str,
-        request_type: str,
+        category_slug: str,
         description: str,
         status: str = "new",
+        vendor_id: Optional[int] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ):
         self.request_id = request_id
         self.user_id = user_id
         self.title = title
-        self.request_type = request_type
+        self.category_slug = category_slug
         self.description = description
         self.status = status
+        self.vendor_id = vendor_id
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
     
     @classmethod
-    def create(cls, user_id: int, title: str, request_type: str, description: str) -> "Request":
+    def create(
+        cls,
+        user_id: int,
+        title: str,
+        category_slug: str,
+        description: str,
+        vendor_id: Optional[int] = None,
+    ) -> "Request":
         """Factory method to create a new request with validation."""
-        # Validate type
-        if request_type not in cls.VALID_TYPES:
-            raise InvalidRequestError(
-                f"Invalid request type: {request_type}. Must be one of {cls.VALID_TYPES}"
-            )
-        
         # Validate description
         if not description or len(description.strip()) < 10:
             raise InvalidRequestError("Description must be at least 10 characters")
@@ -53,9 +55,10 @@ class Request:
             request_id=None,
             user_id=user_id,
             title=title.strip(),
-            request_type=request_type,
+            category_slug=category_slug,
             description=description.strip(),
             status="new",
+            vendor_id=vendor_id,
         )
     
     def assign(self) -> None:
@@ -87,4 +90,4 @@ class Request:
         self.updated_at = datetime.utcnow()
     
     def __repr__(self) -> str:
-        return f"Request(id={self.request_id}, type={self.request_type}, status={self.status})"
+        return f"Request(id={self.request_id}, category={self.category_slug}, status={self.status})"

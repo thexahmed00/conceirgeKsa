@@ -5,6 +5,7 @@ from src.domain.request.entities.request import Request
 from src.domain.conversation.entities.conversation import Conversation
 from src.domain.request.repository.request_repository import RequestRepository
 from src.domain.conversation.repository.conversation_repository import ConversationRepository
+from src.domain.service.repository.service_vendor_repository import ServiceVendorRepository
 from src.application.request.dto.request_dto import RequestCreateDTO, RequestResponseDTO
 from src.domain.shared.exceptions import AccessDeniedError, ResourceNotFoundError
 
@@ -16,30 +17,42 @@ class SubmitRequestUseCase:
         self,
         request_repo: RequestRepository,
         conversation_repo: ConversationRepository,
+        vendor_repo: ServiceVendorRepository,
     ):
         self.request_repo = request_repo
         self.conversation_repo = conversation_repo
+        self.vendor_repo = vendor_repo
     
     def execute(self, dto: RequestCreateDTO, user_id: int) -> RequestResponseDTO:
-        # 1. Create request entity (validates business rules)
+        # 1. Look up vendor to get category and title
+        vendor = self.vendor_repo.find_by_id(dto.vendor_id)
+        if not vendor:
+            raise ResourceNotFoundError(f"Vendor {dto.vendor_id} not found")
+        
+        # Derive title from vendor name, category_slug from vendor's category
+        title = vendor.name
+        category_slug = vendor.category_slug
+        
+        # 2. Create request entity (validates business rules)
         request = Request.create(
             user_id=user_id,
-            title=dto.title,
-            request_type=dto.request_type,
+            title=title,
+            category_slug=category_slug,
             description=dto.description,
+            vendor_id=dto.vendor_id,
         )
         
-        # 2. Save request
+        # 3. Save request
         saved_request = self.request_repo.save(request)
         
-        # 3. Create conversation linked to request
+        # 4. Create conversation linked to request
         conversation = Conversation.create(
             request_id=saved_request.request_id,
             user_id=user_id,
         )
         saved_conversation = self.conversation_repo.save(conversation)
         
-        # 4. Add first message (the request description)
+        # 5. Add first message (the request description)
         first_message = saved_conversation.add_message(
             sender_id=user_id,
             sender_type="user",
@@ -47,14 +60,16 @@ class SubmitRequestUseCase:
         )
         self.conversation_repo.add_message(first_message)
         
-        # 5. Return response
+        # 6. Return response
         return RequestResponseDTO(
             id=saved_request.request_id,
             user_id=saved_request.user_id,
             title=saved_request.title,
-            request_type=saved_request.request_type,
+            category_slug=saved_request.category_slug,
             description=saved_request.description,
             status=saved_request.status,
+            vendor_id=saved_request.vendor_id,
+            vendor_name=vendor.name,
             conversation_id=saved_conversation.conversation_id,
             created_at=saved_request.created_at,
             updated_at=saved_request.updated_at,
@@ -85,9 +100,10 @@ class GetRequestUseCase:
             id=request.request_id,
             user_id=request.user_id,
             title=request.title,
-            request_type=request.request_type,
+            category_slug=request.category_slug,
             description=request.description,
             status=request.status,
+            vendor_id=request.vendor_id,
             conversation_id=conversation.conversation_id if conversation else None,
             created_at=request.created_at,
             updated_at=request.updated_at,
@@ -108,9 +124,10 @@ class ListUserRequestsUseCase:
                 id=r.request_id,
                 user_id=r.user_id,
                 title=r.title,
-                request_type=r.request_type,
+                category_slug=r.category_slug,
                 description=r.description,
                 status=r.status,
+                vendor_id=r.vendor_id,
                 conversation_id=None,  # Optimize: don't fetch conversation for list
                 created_at=r.created_at,
                 updated_at=r.updated_at,

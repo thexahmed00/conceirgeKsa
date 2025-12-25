@@ -30,13 +30,33 @@ class MessageResponseDTO(BaseModel):
         from_attributes = True
 
 
+class ConversationListItemDTO(BaseModel):
+    """Output for conversation list item (minimal info for list view)."""
+    id: int
+    request_id: int
+    vendor_id: Optional[int] = None
+    vendor_name: Optional[str] = None
+    vendor_image_url: Optional[str] = None
+    category_slug: Optional[str] = None
+    last_message: Optional[str] = None
+    last_message_time: Optional[datetime] = None
+    unread_count: int = 0  # Future: implement unread tracking
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
 class ConversationResponseDTO(BaseModel):
-    """Output for conversation responses."""
+    """Output for conversation responses (full detail)."""
     id: int
     request_id: int
     title: Optional[str] = None
     description: Optional[str] = None
     user_id: int
+    vendor_id: Optional[int] = None
+    vendor_name: Optional[str] = None
+    vendor_image_url: Optional[str] = None
     created_at: datetime
     messages: List[MessageResponseDTO] = []
     
@@ -46,7 +66,7 @@ class ConversationResponseDTO(BaseModel):
 
 class ConversationListResponseDTO(BaseModel):
     """Paginated list of conversations."""
-    conversations: List[ConversationResponseDTO]
+    conversations: List[ConversationListItemDTO]
     total: int
     skip: int
     limit: int

@@ -49,3 +49,8 @@ class DuplicateResourceError(DomainException):
 class AccessDeniedError(DomainException):
     """Raised when a user is not allowed to access a resource."""
     pass
+
+
+class ValidationError(DomainException):
+    """Raised when validation fails."""
+    pass
