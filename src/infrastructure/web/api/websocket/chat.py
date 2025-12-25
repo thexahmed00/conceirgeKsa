@@ -22,17 +22,303 @@ async def websocket_chat(
     token: str = Query(..., description="JWT token for authentication"),
 ):
     """
-    WebSocket endpoint for real-time chat.
+    # WebSocket Real-Time Chat Endpoint
     
-    Connect: ws://localhost:8000/ws/chat/{conversation_id}?token={jwt_token}
+    ## Connection URL
+    ```
+    ws://localhost:8000/ws/chat/{conversation_id}?token={jwt_token}
+    ```
     
-    Send message format:
-    {"content": "Hello!"}
+    ## Authentication
+    - Pass JWT token as query parameter: `?token=YOUR_JWT_TOKEN`
+    - Get JWT from: `POST /api/v1/auth/login`
+    - Token is validated on connection
     
-    Receive message format:
-    {"id": 1, "sender_id": 1, "sender_type": "user", "content": "Hello!", "created_at": "..."}
+    ## Access Control
+    - **Regular Users**: Can only connect to their own conversations
+    - **Admins** (`is_admin=true`): Can connect to any conversation
     
-    Admin users can access any conversation. Regular users can only access their own.
+    ## Message Flow
+    
+    ### 1. Client Connects
+    ```javascript
+    const ws = new WebSocket('ws://localhost:8000/ws/chat/2?token=eyJhbGci...');
+    
+    ws.onopen = () => {
+      console.log('Connected!');
+    };
+    ```
+    
+    **Server Response:**
+    ```json
+    {
+      "type": "connected",
+      "conversation_id": 2,
+      "user_type": "user",
+      "message": "Connected to chat as user"
+    }
+    ```
+    
+    ### 2. Send Message (Client → Server)
+    ```javascript
+    ws.send(JSON.stringify({
+      "content": "Hello! Can you help me book a table?"
+    }));
+    ```
+    
+    ### 3. Receive Messages (Server → Client)
+    **Broadcast to all connected clients (user + admin):**
+    ```json
+    {
+      "type": "message",
+      "id": 123,
+      "conversation_id": 2,
+      "sender_id": 9,
+      "sender_type": "user",
+      "content": "Hello! Can you help me book a table?",
+      "created_at": "2025-12-23T16:45:30.123456"
+    }
+    ```
+    
+    **Admin reply (all clients receive):**
+    ```json
+    {
+      "type": "message",
+      "id": 124,
+      "conversation_id": 2,
+      "sender_id": 1,
+      "sender_type": "admin",
+      "content": "Of course! Which restaurant would you prefer?",
+      "created_at": "2025-12-23T16:46:15.789012"
+    }
+    ```
+    
+    ### 4. Handle Incoming Messages
+    ```javascript
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      switch(data.type) {
+        case 'connected':
+          console.log('Connection established:', data.message);
+          break;
+        
+        case 'message':
+          // Display message in chat UI
+          if (data.sender_type === 'admin') {
+            displayAdminMessage(data.content, data.created_at);
+          } else {
+            displayUserMessage(data.content, data.created_at);
+          }
+          break;
+        
+        case 'error':
+          console.error('Error:', data.message);
+          break;
+      }
+    };
+    ```
+    
+    ### 5. Handle Disconnection
+    ```javascript
+    ws.onclose = (event) => {
+      console.log('Disconnected:', event.code);
+      // Attempt reconnection if needed
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ```
+    
+    ## Error Responses
+    
+    ### Invalid/Expired Token (Code: 4001)
+    ```json
+    {
+      "type": "error",
+      "message": "Invalid or expired token"
+    }
+    ```
+    
+    ### Conversation Not Found (Code: 4004)
+    ```json
+    {
+      "type": "error",
+      "message": "Conversation not found"
+    }
+    ```
+    
+    ### Access Denied (Code: 4003)
+    ```json
+    {
+      "type": "error",
+      "message": "Access denied to this conversation"
+    }
+    ```
+    
+    ### Empty Message Content
+    ```json
+    {
+      "type": "error",
+      "message": "Message content cannot be empty"
+    }
+    ```
+    
+    ## Complete Frontend Example
+    
+    ```javascript
+    class ChatClient {
+      constructor(conversationId, token) {
+        this.conversationId = conversationId;
+        this.token = token;
+        this.ws = null;
+      }
+      
+      connect() {
+        const url = `ws://localhost:8000/ws/chat/${this.conversationId}?token=${this.token}`;
+        this.ws = new WebSocket(url);
+        
+        this.ws.onopen = () => {
+          console.log('✅ Connected to chat');
+        };
+        
+        this.ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          this.handleMessage(data);
+        };
+        
+        this.ws.onerror = (error) => {
+          console.error('❌ WebSocket error:', error);
+        };
+        
+        this.ws.onclose = (event) => {
+          console.log('🔌 Disconnected:', event.code);
+          // Reconnect after 3 seconds
+          setTimeout(() => this.connect(), 3000);
+        };
+      }
+      
+      sendMessage(content) {
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ content }));
+        } else {
+          console.error('WebSocket not connected');
+        }
+      }
+      
+      handleMessage(data) {
+        switch(data.type) {
+          case 'connected':
+            console.log('Connected as:', data.user_type);
+            break;
+          
+          case 'message':
+            this.displayMessage(data);
+            break;
+          
+          case 'error':
+            alert('Error: ' + data.message);
+            break;
+        }
+      }
+      
+      displayMessage(msg) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = msg.sender_type === 'admin' ? 'admin-message' : 'user-message';
+        messageDiv.innerHTML = `
+          <strong>${msg.sender_type}</strong>: ${msg.content}
+          <small>${new Date(msg.created_at).toLocaleTimeString()}</small>
+        `;
+        document.getElementById('chat-messages').appendChild(messageDiv);
+      }
+      
+      disconnect() {
+        if (this.ws) {
+          this.ws.close();
+        }
+      }
+    }
+    
+    // Usage
+    const chat = new ChatClient(2, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+    chat.connect();
+    
+    // Send message
+    document.getElementById('send-btn').onclick = () => {
+      const input = document.getElementById('message-input');
+      chat.sendMessage(input.value);
+      input.value = '';
+    };
+    ```
+    
+    ## React Example
+    
+    ```javascript
+    import { useEffect, useState, useRef } from 'react';
+    
+    function ChatComponent({ conversationId, token }) {
+      const [messages, setMessages] = useState([]);
+      const [inputValue, setInputValue] = useState('');
+      const wsRef = useRef(null);
+      
+      useEffect(() => {
+        const ws = new WebSocket(
+          `ws://localhost:8000/ws/chat/${conversationId}?token=${token}`
+        );
+        
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'message') {
+            setMessages(prev => [...prev, data]);
+          }
+        };
+        
+        wsRef.current = ws;
+        
+        return () => ws.close();
+      }, [conversationId, token]);
+      
+      const sendMessage = () => {
+        if (wsRef.current && inputValue.trim()) {
+          wsRef.current.send(JSON.stringify({ content: inputValue }));
+          setInputValue('');
+        }
+      };
+      
+      return (
+        <div className="chat-container">
+          <div className="messages">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`message ${msg.sender_type}`}>
+                <strong>{msg.sender_type}:</strong> {msg.content}
+              </div>
+            ))}
+          </div>
+          <input 
+            value={inputValue} 
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          />
+          <button onClick={sendMessage}>Send</button>
+        </div>
+      );
+    }
+    ```
+    
+    ## Testing with Postman/Thunder Client
+    
+    1. Create WebSocket request
+    2. URL: `ws://localhost:8000/ws/chat/2?token=YOUR_JWT`
+    3. Connect
+    4. Send: `{"content": "Test message"}`
+    5. Observe broadcasted response
+    
+    ## Notes
+    - All messages are persisted to database before broadcasting
+    - Both user and admin receive all messages in real-time
+    - Connection auto-closes on invalid token or access denial
+    - Messages are ordered by `created_at` timestamp
     """
     # 1. Authenticate via JWT token
     claims = get_token_claims(token)

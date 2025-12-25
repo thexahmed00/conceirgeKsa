@@ -7,6 +7,7 @@ from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
     MessageResponseDTO,
     ConversationResponseDTO,
+    ConversationListItemDTO,
 )
 from src.domain.shared.exceptions import AccessDeniedError, ResourceNotFoundError
 
@@ -30,7 +31,12 @@ class GetConversationUseCase:
         return ConversationResponseDTO(
             id=conversation.conversation_id,
             request_id=conversation.request_id,
+            title=conversation.title,
+            description=conversation.description,
             user_id=conversation.user_id,
+            vendor_id=conversation.vendor_id,
+            vendor_name=conversation.vendor_name,
+            vendor_image_url=conversation.vendor_image_url,
             created_at=conversation.created_at,
             messages=[
                 MessageResponseDTO(
@@ -96,16 +102,21 @@ class ListUserConversationsUseCase:
     def __init__(self, conversation_repo: ConversationRepository):
         self.conversation_repo = conversation_repo
     
-    def execute(self, user_id: int, skip: int = 0, limit: int = 20) -> List[ConversationResponseDTO]:
+    def execute(self, user_id: int, skip: int = 0, limit: int = 20) -> List[ConversationListItemDTO]:
         conversations = self.conversation_repo.find_by_user_id(user_id, skip, limit)
         
         return [
-            ConversationResponseDTO(
+            ConversationListItemDTO(
                 id=c.conversation_id,
                 request_id=c.request_id,
-                user_id=c.user_id,
+                vendor_id=c.vendor_id,
+                vendor_name=c.vendor_name,
+                vendor_image_url=c.vendor_image_url,
+                category_slug=c.category_slug,
+                last_message=c.messages[-1].content if c.messages else c.description,
+                last_message_time=c.messages[-1].created_at if c.messages else c.created_at,
+                unread_count=0,  # TODO: implement unread tracking
                 created_at=c.created_at,
-                messages=[],  # Don't load messages for list view
             )
             for c in conversations
         ]
@@ -126,6 +137,8 @@ class ListAllConversationsUseCase:
                 ConversationResponseDTO(
                     id=c.conversation_id,
                     request_id=c.request_id,
+                    title=c.title,
+                    description=c.description,
                     user_id=c.user_id,
                     created_at=c.created_at,
                     messages=[],  # Don't load messages for list view

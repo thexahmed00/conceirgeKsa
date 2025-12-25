@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Index
+from sqlalchemy.orm import relationship
 from src.infrastructure.persistence.models.user import Base
 
 
@@ -14,6 +15,11 @@ class ConversationModel(Base):
     request_id = Column(Integer, ForeignKey("requests.id"), nullable=False, unique=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationships
+    request = relationship("RequestModel", back_populates="conversation", lazy="joined")
+    messages = relationship("MessageModel", back_populates="conversation", cascade="all, delete-orphan")
+    user = relationship("UserModel", back_populates="conversations")
     
     __table_args__ = (
         Index('idx_conversations_user_id', 'user_id'),
@@ -35,6 +41,9 @@ class MessageModel(Base):
     sender_type = Column(String(50), nullable=False)  # 'user' or 'admin'
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Relationships
+    conversation = relationship("ConversationModel", back_populates="messages")
     
     __table_args__ = (
         Index('idx_messages_conversation_id', 'conversation_id'),

@@ -17,8 +17,9 @@ class RequestRepository:
         """Save a request and return with generated ID."""
         db_request = RequestModel(
             user_id=request.user_id,
+            vendor_id=request.vendor_id,
             title=request.title,
-            type=request.request_type,
+            type=request.category_slug,
             description=request.description,
             status=request.status,
             created_at=request.created_at,
@@ -64,9 +65,10 @@ class RequestRepository:
             request_id=model.id,
             user_id=model.user_id,
             title=model.title,
-            request_type=model.type,
+            category_slug=model.type,
             description=model.description,
             status=model.status,
+            vendor_id=model.vendor_id,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

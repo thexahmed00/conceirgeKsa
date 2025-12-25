@@ -66,12 +66,24 @@ class Conversation:
         conversation_id: Optional[int],
         request_id: int,
         user_id: int,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        vendor_id: Optional[int] = None,
+        vendor_name: Optional[str] = None,
+        vendor_image_url: Optional[str] = None,
+        category_slug: Optional[str] = None,
         created_at: Optional[datetime] = None,
         messages: Optional[List[Message]] = None,
     ):
         self.conversation_id = conversation_id
         self.request_id = request_id
         self.user_id = user_id
+        self.title = title
+        self.description = description
+        self.vendor_id = vendor_id
+        self.vendor_name = vendor_name
+        self.vendor_image_url = vendor_image_url
+        self.category_slug = category_slug
         self.created_at = created_at or datetime.utcnow()
         self.messages = messages or []
     
