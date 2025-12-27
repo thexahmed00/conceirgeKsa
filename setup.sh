@@ -21,7 +21,6 @@ echo "📦 Starting PostgreSQL container..."
 docker-compose up -d postgres pgadmin
 
 echo ""
-echo "⏳ Waiting for PostgreSQL to be ready..."
 sleep 5
 
 # Check if database is ready
