@@ -71,7 +71,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("AJLA API starting up...")
-    init_db()
+    # init_db()
     logger.info("Database initialized")
 
 @app.on_event("shutdown")
