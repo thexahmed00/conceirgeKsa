@@ -42,17 +42,30 @@ def list_categories(
     return use_case.execute()
 
 
-@router.get("/categories/{category_slug}/vendors", response_model=VendorListResponseDTO)
-def list_vendors_by_category(
-    category_slug: str,
+
+# Support both: /categories/{category_slug}/vendors and /vendors (category optional)
+from typing import Optional
+
+@router.get(
+    "/categories/{category_slug}/vendors",
+    response_model=VendorListResponseDTO,
+    summary="List Vendors (by Category or All)",
+    description="List vendors for a specific category (or all if not provided). Provides thumbnail and basic info for list view."
+)
+@router.get(
+    "/vendors",
+    response_model=VendorListResponseDTO,
+    summary="List All Vendors",
+    description="List all vendors. Provides thumbnail and basic info for list view."
+)
+def list_vendors(
+    category_slug: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     use_case: ListVendorsByCategoryUseCase = Depends(get_list_vendors_by_category_use_case),
 ) -> VendorListResponseDTO:
     """
-    List vendors for a specific category (public endpoint).
-    
-    Provides thumbnail and basic info for list view.
+    List all vendors, or filter by category if category_slug is provided. Provides thumbnail and basic info for list view.
     """
     return use_case.execute(
         category_slug=category_slug,
