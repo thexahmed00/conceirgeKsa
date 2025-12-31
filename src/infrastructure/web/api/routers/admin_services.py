@@ -1,6 +1,6 @@
 """Admin Services API endpoints - vendor management."""
 
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException, Response
 
 from src.application.service.dto.service_dto import (
     VendorCreateDTO,
@@ -10,6 +10,9 @@ from src.application.service.dto.service_dto import (
     ImageCreateDTO,
     ImageReorderDTO,
     VendorImageDTO,
+    ServiceCategoryResponseDTO,
+    ServiceCategoryCreateDTO,
+    ServiceCategoryUpdateDTO,
 )
 from src.application.service.use_cases.admin_vendor_use_cases import (
     CreateVendorUseCase,
@@ -35,6 +38,9 @@ from src.infrastructure.web.dependencies import (
     get_reorder_vendor_images_use_case,
     get_list_vendors_by_category_use_case,
     get_vendor_detail_use_case,
+    get_create_category_use_case,
+    get_update_category_use_case,
+    get_service_category_repository,
 )
 from src.shared.logger.config import get_logger
 
@@ -151,6 +157,61 @@ def add_vendor_image(
     result = use_case.execute(vendor_id, dto)
     logger.info(f"Image added to vendor {vendor_id}: id={result.id}, type={result.image_type}, by admin={admin_id}")
     return result
+
+
+# =============================================================================
+# Service Categories (admin)
+# =============================================================================
+
+
+@router.post("/categories", response_model=ServiceCategoryResponseDTO, status_code=status.HTTP_201_CREATED)
+def create_category(
+    dto: ServiceCategoryCreateDTO,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_create_category_use_case),
+) -> ServiceCategoryResponseDTO:
+    """Create a new service category (admin only)."""
+    try:
+        result = use_case.execute(dto)
+    except ValueError as e:
+        # Covers both invalid icon_url and duplicate slug (from repo)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    logger.info(f"Category created: id={result.id}, slug={result.slug}, by admin={admin_id}")
+    return result
+
+
+@router.put("/categories/{category_id}", response_model=ServiceCategoryResponseDTO)
+def update_category(
+    category_id: int,
+    dto: ServiceCategoryUpdateDTO,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_update_category_use_case),
+) -> ServiceCategoryResponseDTO:
+    """Update an existing service category (admin only)."""
+    try:
+        result = use_case.execute(category_id, dto)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    logger.info(f"Category updated: id={category_id}, by admin={admin_id}")
+    return result
+
+
+
+@router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_category(
+    category_id: int,
+    admin_id: int = Depends(get_current_admin_user),
+    category_repo = Depends(get_service_category_repository),
+) -> Response:
+    """Delete a service category (admin only). Returns 204 on success, 404 if not found."""
+    success = category_repo.delete(category_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    logger.info(f"Category deleted: id={category_id}, by admin={admin_id}")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete("/vendors/{vendor_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)

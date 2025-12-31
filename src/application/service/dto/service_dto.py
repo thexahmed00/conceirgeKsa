@@ -14,6 +14,7 @@ class ServiceCategoryResponseDTO(BaseModel):
     id: int
     slug: str
     name: str
+    icon_url: Optional[str] = None
     display_order: int
     
     class Config:
@@ -23,6 +24,22 @@ class ServiceCategoryResponseDTO(BaseModel):
 class ServiceCategoryListResponseDTO(BaseModel):
     """List of all service categories."""
     categories: List[ServiceCategoryResponseDTO]
+
+
+# Admin input DTOs for categories
+class ServiceCategoryCreateDTO(BaseModel):
+    """Input for creating a service category."""
+    slug: str = Field(..., min_length=2, description="Category slug (unique)")
+    name: str = Field(..., min_length=2, description="Display name")
+    display_order: int = Field(0, description="Display ordering integer")
+    icon_url: Optional[str] = Field(None, description="Optional icon URL for the category")
+
+
+class ServiceCategoryUpdateDTO(BaseModel):
+    """Input for updating a service category."""
+    name: Optional[str] = Field(None, min_length=2)
+    display_order: Optional[int] = None
+    icon_url: Optional[str] = None
 
 
 # =============================================================================

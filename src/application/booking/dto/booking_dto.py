@@ -18,8 +18,11 @@ class BookingResponseDTO(BaseModel):
     request_id: int
     user_id: int
     vendor_id: Optional[int]
+    vendor: Optional[dict] = None
     start_at: datetime
     end_at: Optional[datetime]
+    start_at_formatted: Optional[str] = None
+    end_at_formatted: Optional[str] = None
     status: str
     notes: Optional[str]
     created_at: datetime

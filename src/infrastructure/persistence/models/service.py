@@ -18,6 +18,7 @@ class ServiceCategoryModel(Base):
     slug = Column(String(50), unique=True, nullable=False, index=True)
     name = Column(String(100), nullable=False)
     display_order = Column(Integer, nullable=False, default=0)
+    icon_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
@@ -25,6 +26,7 @@ class ServiceCategoryModel(Base):
     
     __table_args__ = (
         Index('idx_category_slug', 'slug'),
+        Index('idx_category_icon_url', 'icon_url'),
         Index('idx_category_display_order', 'display_order'),
     )
     

@@ -11,15 +11,11 @@ from src.application.conversation.dto.conversation_dto import (
 )
 from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingResponseDTO
 from src.application.conversation.use_cases.conversation_use_cases import (
-    GetConversationUseCase,
     SendMessageUseCase,
-    ListAllConversationsUseCase,
 )
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.web.dependencies import (
-    get_conversation_use_case,
     get_current_user,
-    get_list_all_conversations_use_case,
     get_send_message_use_case,
     get_user_repository,
     get_create_booking_use_case,
@@ -66,34 +62,7 @@ async def get_admin_info(
     return AdminInfo(user_id=admin_id, is_admin=True)
 
 
-@router.get("/conversations", response_model=ConversationListResponseDTO)
-def list_all_conversations(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    admin_id: int = Depends(get_admin_user),
-    use_case: ListAllConversationsUseCase = Depends(get_list_all_conversations_use_case),
-) -> ConversationListResponseDTO:
-    """List all conversations (admin only)."""
-    conversations, total = use_case.execute(skip, limit)
-    
-    logger.info(f"Admin {admin_id} listed all conversations: {total} total")
-    
-    return ConversationListResponseDTO(
-        conversations=conversations,
-        total=total,
-        skip=skip,
-        limit=limit,
-    )
 
-
-@router.get("/conversations/{conversation_id}", response_model=ConversationResponseDTO)
-def get_conversation(
-    conversation_id: int,
-    admin_id: int = Depends(get_admin_user),
-    use_case: GetConversationUseCase = Depends(get_conversation_use_case),
-) -> ConversationResponseDTO:
-    """Get a conversation with all messages (admin access)."""
-    return use_case.execute(conversation_id, admin_id, is_admin=True)
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=MessageResponseDTO, status_code=status.HTTP_201_CREATED)

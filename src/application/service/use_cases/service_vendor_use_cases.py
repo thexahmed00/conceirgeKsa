@@ -47,9 +47,9 @@ class ListVendorsByCategoryUseCase:
 
         vendor_dtos = []
         for vendor in vendors:
-            # Get first hero image for thumbnail
+            # Get first hero image and use its direct image URL as the list hero URL
             first_hero = self.image_repo.find_first_hero_image(vendor.vendor_id)
-            thumbnail_url = first_hero.thumbnail_url or first_hero.image_url if first_hero else None
+            hero_url = first_hero.image_url if first_hero else None
 
             # Truncate description for list view
             short_desc = vendor.description[:150] + "..." if len(vendor.description) > 150 else vendor.description
@@ -60,7 +60,7 @@ class ListVendorsByCategoryUseCase:
                     name=vendor.name,
                     category_slug=vendor.category_slug,
                     category_name=vendor.category_name,
-                    thumbnail_url=thumbnail_url,
+                    thumbnail_url=hero_url,
                     rating=vendor.rating,
                     short_description=short_desc,
                     address=vendor.address,

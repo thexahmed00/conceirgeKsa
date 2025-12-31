@@ -23,6 +23,8 @@ from src.application.conversation.use_cases.conversation_use_cases import (
 )
 from src.application.service.use_cases.service_category_use_cases import (
     ListCategoriesUseCase,
+    CreateCategoryUseCase,
+    UpdateCategoryUseCase,
 )
 from src.application.service.use_cases.service_vendor_use_cases import (
     ListVendorsByCategoryUseCase,
@@ -118,6 +120,11 @@ def get_booking_repository(db: Session = Depends(get_db)) -> BookingRepository:
     return BookingRepository(db)
 
 
+def get_vendor_image_repository(db: Session = Depends(get_db)) -> VendorImageRepository:
+    """Provide a vendor image repository (moved earlier to avoid forward-reference issues)."""
+    return VendorImageRepository(db)
+
+
 def get_submit_request_use_case(
     request_repository: RequestRepository = Depends(get_request_repository),
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
@@ -166,8 +173,10 @@ def get_create_booking_use_case(
 
 def get_list_user_bookings_use_case(
     booking_repo: BookingRepository = Depends(get_booking_repository),
+    vendor_repo: ServiceVendorRepository = Depends(get_service_vendor_repository),
+    image_repo: VendorImageRepository = Depends(get_vendor_image_repository),
 ) -> ListUserBookingsUseCase:
-    return ListUserBookingsUseCase(booking_repo)
+    return ListUserBookingsUseCase(booking_repo, vendor_repo, image_repo)
 
 
 def get_list_all_conversations_use_case(
@@ -242,6 +251,20 @@ def get_list_categories_use_case(
 ) -> ListCategoriesUseCase:
     """Provide use case for listing categories."""
     return ListCategoriesUseCase(category_repo)
+
+
+def get_create_category_use_case(
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+) -> CreateCategoryUseCase:
+    """Provide use case for creating a category (admin)."""
+    return CreateCategoryUseCase(category_repo)
+
+
+def get_update_category_use_case(
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+) -> UpdateCategoryUseCase:
+    """Provide use case for updating a category (admin)."""
+    return UpdateCategoryUseCase(category_repo)
 
 
 def get_list_vendors_by_category_use_case(

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from src.domain.service.entities.service_category import ServiceCategory
 from src.domain.service.repository.service_category_repository import ServiceCategoryRepository as IServiceCategoryRepository
 from src.infrastructure.persistence.models.service import ServiceCategoryModel
+from sqlalchemy.exc import IntegrityError
 
 
 class ServiceCategoryRepository(IServiceCategoryRepository):
@@ -20,13 +21,18 @@ class ServiceCategoryRepository(IServiceCategoryRepository):
             slug=category.slug,
             name=category.name,
             display_order=category.display_order,
+            icon_url=getattr(category, 'icon_url', None),
             created_at=category.created_at,
         )
         self.db.add(db_category)
-        self.db.commit()
-        self.db.refresh(db_category)
-        
-        return self._to_entity(db_category)
+        try:
+            self.db.commit()
+            self.db.refresh(db_category)
+            return self._to_entity(db_category)
+        except IntegrityError:
+            # Unique constraint on slug violated — translate to a clear error
+            self.db.rollback()
+            raise ValueError(f"Category with slug '{category.slug}' already exists")
     
     def find_by_id(self, category_id: int) -> Optional[ServiceCategory]:
         """Find category by ID."""
@@ -66,6 +72,7 @@ class ServiceCategoryRepository(IServiceCategoryRepository):
         if db_category:
             db_category.name = category.name
             db_category.display_order = category.display_order
+            db_category.icon_url = getattr(category, 'icon_url', None)
             self.db.commit()
             self.db.refresh(db_category)
             return self._to_entity(db_category)
@@ -94,5 +101,6 @@ class ServiceCategoryRepository(IServiceCategoryRepository):
             slug=model.slug,
             name=model.name,
             display_order=model.display_order,
+            icon_url=getattr(model, 'icon_url', None),
             created_at=model.created_at,
         )

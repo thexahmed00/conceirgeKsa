@@ -79,6 +79,13 @@
 - `GET /api/v1/conversations/{conversation_id}` - Get conversation history
 - `POST /api/v1/messages` - Send message (fallback HTTP endpoint)
 
+- Note: admin HTTP GET endpoints for conversations (`GET /api/v1/admin/conversations` and
+  `GET /api/v1/admin/conversations/{conversation_id}`) were removed to avoid duplicate
+  functionality — conversation retrieval should use the user-facing `GET /api/v1/conversations/{conversation_id}`
+  endpoint. Admins can still interact with conversations via the following admin endpoints:
+  - `POST /api/v1/admin/conversations/{conversation_id}/messages` — send a message as admin
+  - `POST /api/v1/admin/conversations/{conversation_id}/confirm` — confirm a conversation and create a booking
+
 ### Authentication API
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/login` - JWT token generation
