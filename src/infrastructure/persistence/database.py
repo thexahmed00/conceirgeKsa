@@ -12,6 +12,7 @@ from src.infrastructure.persistence.models.conversation import ConversationModel
 from src.infrastructure.persistence.models.service import (
     ServiceCategoryModel, ServiceVendorModel, VendorImageModel
 )
+from src.infrastructure.persistence.models.booking import BookingModel
 
 # Create engine with NullPool for async contexts
 engine = create_engine(

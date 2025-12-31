@@ -9,6 +9,7 @@ from src.application.conversation.dto.conversation_dto import (
     ConversationResponseDTO,
     ConversationListResponseDTO,
 )
+from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingResponseDTO
 from src.application.conversation.use_cases.conversation_use_cases import (
     GetConversationUseCase,
     SendMessageUseCase,
@@ -21,7 +22,10 @@ from src.infrastructure.web.dependencies import (
     get_list_all_conversations_use_case,
     get_send_message_use_case,
     get_user_repository,
+    get_create_booking_use_case,
+    get_current_admin_user,
 )
+from src.infrastructure.web.dependencies import get_conversation_repository
 from src.shared.logger.config import get_logger
 
 logger = get_logger(__name__)
@@ -102,4 +106,33 @@ def send_admin_message(
     """Send a message as admin in any conversation."""
     result = use_case.execute(conversation_id, admin_id, dto, sender_type="admin")
     logger.info(f"Admin {admin_id} sent message in conversation {conversation_id}")
+    return result
+
+
+@router.post("/conversations/{conversation_id}/confirm", response_model=BookingResponseDTO, status_code=201)
+def confirm_conversation_and_create_booking(
+    conversation_id: int,
+    dto: BookingCreateDTO,
+    admin_id: int = Depends(get_admin_user),
+    conversation_repo = Depends(get_conversation_repository),
+    create_booking_uc = Depends(get_create_booking_use_case),
+) -> BookingResponseDTO:
+    """Admin confirms a conversation (linked to a request) and creates a booking for the user.
+
+    The client only needs to provide the `conversation_id` in the path and the booking times in the body.
+    The server will resolve the linked `request_id` and `user_id` from the conversation.
+    """
+    conversation = conversation_repo.find_by_id(conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Populate missing request_id/vendor_id from conversation
+    if not dto.request_id:
+        dto.request_id = conversation.request_id
+    if not dto.vendor_id:
+        dto.vendor_id = conversation.vendor_id
+
+    # Execute booking creation
+    result = create_booking_uc.execute(dto, admin_id)
+    logger.info(f"Admin {admin_id} created booking {result.id} for conversation {conversation_id} (request {dto.request_id})")
     return result

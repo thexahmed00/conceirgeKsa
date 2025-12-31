@@ -14,6 +14,7 @@ from src.infrastructure.web.api.routers import admin
 from src.infrastructure.web.api.routers import websocket_docs
 from src.infrastructure.web.api.routers import services
 from src.infrastructure.web.api.routers import admin_services
+from src.infrastructure.web.api.routers import bookings
 from src.infrastructure.web.api.websocket import chat
 from src.domain.shared.exceptions import (
     AccessDeniedError,
@@ -71,7 +72,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("AJLA API starting up...")
-    # init_db()
+    # Initialize DB tables (creates missing tables in dev). In production use Alembic migrations.
+    init_db()
     logger.info("Database initialized")
 
 @app.on_event("shutdown")
@@ -97,6 +99,7 @@ app.include_router(services.router)
 app.include_router(admin_services.router)
 app.include_router(websocket_docs.router)  # WebSocket documentation endpoint
 app.include_router(chat.router)  # WebSocket endpoint (won't show in Swagger)
+app.include_router(bookings.router)
 
 if __name__ == "__main__":
     import uvicorn

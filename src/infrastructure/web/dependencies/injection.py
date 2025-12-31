@@ -39,6 +39,10 @@ from src.application.service.use_cases.vendor_image_use_cases import (
     ReorderVendorImagesUseCase,
     GetVendorImageUseCase,
 )
+from src.application.booking.use_cases.booking_use_cases import (
+    CreateBookingUseCase,
+    ListUserBookingsUseCase,
+)
 from src.domain.request.repository.request_repository import RequestRepository
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.persistence.database import SessionLocal
@@ -50,6 +54,7 @@ from src.infrastructure.persistence.repositories.user_repository import PostgreS
 from src.infrastructure.persistence.repositories.service_category_repository import ServiceCategoryRepository
 from src.infrastructure.persistence.repositories.service_vendor_repository import ServiceVendorRepository
 from src.infrastructure.persistence.repositories.vendor_image_repository import VendorImageRepository
+from src.infrastructure.persistence.repositories.booking_repository import BookingRepository
 from src.infrastructure.auth.jwt_handler import get_user_id_from_token, get_token_claims
 from src.shared.logger.config import get_logger
 
@@ -108,6 +113,11 @@ def get_service_vendor_repository(db: Session = Depends(get_db)) -> ServiceVendo
     return ServiceVendorRepository(db)
 
 
+def get_booking_repository(db: Session = Depends(get_db)) -> BookingRepository:
+    """Provide booking repository."""
+    return BookingRepository(db)
+
+
 def get_submit_request_use_case(
     request_repository: RequestRepository = Depends(get_request_repository),
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
@@ -145,6 +155,19 @@ def get_list_user_conversations_use_case(
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
 ) -> ListUserConversationsUseCase:
     return ListUserConversationsUseCase(conversation_repository)
+
+
+def get_create_booking_use_case(
+    booking_repo: BookingRepository = Depends(get_booking_repository),
+    request_repo: RequestRepository = Depends(get_request_repository),
+) -> CreateBookingUseCase:
+    return CreateBookingUseCase(booking_repo, request_repo)
+
+
+def get_list_user_bookings_use_case(
+    booking_repo: BookingRepository = Depends(get_booking_repository),
+) -> ListUserBookingsUseCase:
+    return ListUserBookingsUseCase(booking_repo)
 
 
 def get_list_all_conversations_use_case(

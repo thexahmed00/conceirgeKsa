@@ -1,43 +1,44 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: ajla_postgres
+  transaction-db:
+    image: postgres:16
+    network_mode: host
+    container_name: ajla-db
+      #ports:
+      #- "2354:5432"   # host access only
     environment:
       POSTGRES_USER: ajla_user
-      POSTGRES_PASSWORD: ajla_password
+      POSTGRES_PASSWORD: test123
+        #POSTGRES_PORT: 5432
       POSTGRES_DB: ajla_db
-    ports:
-      - "5432:5432"
+    command: ["postgres", "-c", "max_connections=1000"]
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - transactionData:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ajla_user -d ajla_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ajla_network
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: ajla_pgadmin
+  api:
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: ajla-api:1.0.0
+    container_name: ajla-api
+    network_mode: host
+    #build: .
+    #ports:
+    # - "8080:8080"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ajla.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
+      DATABASE_URL: postgresql://ajla_user:test123@127.0.0.1:5432/ajla_db
+      PORT: 8080
     depends_on:
-      postgres:
+      transaction-db:
         condition: service_healthy
-    networks:
-      - ajla_network
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
-
-networks:
-  ajla_network:
-    driver: bridge
+  transactionData:

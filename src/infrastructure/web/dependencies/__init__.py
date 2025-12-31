@@ -25,6 +25,8 @@ from src.infrastructure.web.dependencies.injection import (
 	get_list_categories_use_case,
 	get_list_vendors_by_category_use_case,
 	get_vendor_detail_use_case,
+	get_create_booking_use_case,
+	get_list_user_bookings_use_case,
 	get_create_vendor_use_case,
 	get_update_vendor_use_case,
 	get_delete_vendor_use_case,
