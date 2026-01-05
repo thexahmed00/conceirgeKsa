@@ -40,6 +40,25 @@ class BookingRepository:
         results = q.order_by(BookingModel.start_at.desc()).offset(skip).limit(limit).all()
         return [self._to_entity(b) for b in results]
 
+    def count_by_user_and_status(self, user_id: int, status: Optional[str] = None) -> int:
+        q = self.db.query(BookingModel).filter(BookingModel.user_id == user_id)
+        if status:
+            q = q.filter(BookingModel.status == status)
+        return q.count()
+
+    def find_all(self, status: Optional[str] = None, skip: int = 0, limit: int = 20) -> List[Booking]:
+        q = self.db.query(BookingModel)
+        if status:
+            q = q.filter(BookingModel.status == status)
+        results = q.order_by(BookingModel.start_at.desc()).offset(skip).limit(limit).all()
+        return [self._to_entity(b) for b in results]
+
+    def count_all(self, status: Optional[str] = None) -> int:
+        q = self.db.query(BookingModel)
+        if status:
+            q = q.filter(BookingModel.status == status)
+        return q.count()
+
     def update(self, booking: Booking) -> Booking:
         db_b = self.db.query(BookingModel).filter(BookingModel.id == booking.booking_id).first()
         if db_b:

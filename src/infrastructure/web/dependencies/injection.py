@@ -43,6 +43,7 @@ from src.application.service.use_cases.vendor_image_use_cases import (
 )
 from src.application.booking.use_cases.booking_use_cases import (
     CreateBookingUseCase,
+    ListAllBookingsUseCase,
     ListUserBookingsUseCase,
 )
 from src.domain.request.repository.request_repository import RequestRepository
@@ -177,6 +178,14 @@ def get_list_user_bookings_use_case(
     image_repo: VendorImageRepository = Depends(get_vendor_image_repository),
 ) -> ListUserBookingsUseCase:
     return ListUserBookingsUseCase(booking_repo, vendor_repo, image_repo)
+
+
+def get_list_all_bookings_use_case(
+    booking_repo: BookingRepository = Depends(get_booking_repository),
+    vendor_repo: ServiceVendorRepository = Depends(get_service_vendor_repository),
+    image_repo: VendorImageRepository = Depends(get_vendor_image_repository),
+) -> ListAllBookingsUseCase:
+    return ListAllBookingsUseCase(booking_repo, vendor_repo, image_repo)
 
 
 def get_list_all_conversations_use_case(
