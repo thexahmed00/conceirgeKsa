@@ -9,6 +9,7 @@ from src.infrastructure.web.dependencies.injection import (
 	get_current_admin_user,
 	get_db,
 	get_list_user_conversations_use_case,
+	get_list_all_conversations_use_case,
 	get_list_user_requests_use_case,
 	get_optional_user,
 	get_request_repository,
@@ -54,6 +55,7 @@ __all__ = [
 	"get_conversation_use_case",
 	"get_send_message_use_case",
 	"get_list_user_conversations_use_case",
+	"get_list_all_conversations_use_case",
 
 	# Service exports
 	"get_service_category_repository",

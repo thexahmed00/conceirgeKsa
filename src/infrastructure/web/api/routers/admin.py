@@ -7,19 +7,23 @@ from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
     MessageResponseDTO,
     ConversationResponseDTO,
-    ConversationListResponseDTO,
+    AdminConversationListResponseDTO,
 )
 from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingResponseDTO
 from src.application.conversation.use_cases.conversation_use_cases import (
+    GetConversationUseCase,
     SendMessageUseCase,
+    ListAllConversationsUseCase,
 )
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.web.dependencies import (
+    get_conversation_use_case,
     get_current_user,
     get_send_message_use_case,
     get_user_repository,
     get_create_booking_use_case,
     get_current_admin_user,
+    get_list_all_conversations_use_case,
 )
 from src.infrastructure.web.dependencies import get_conversation_repository
 from src.shared.logger.config import get_logger
@@ -60,6 +64,34 @@ async def get_admin_info(
 ) -> AdminInfo:
     """Get current admin info."""
     return AdminInfo(user_id=admin_id, is_admin=True)
+
+
+@router.get("/conversations", response_model=AdminConversationListResponseDTO)
+def list_all_conversations(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    admin_id: int = Depends(get_admin_user),
+    use_case: ListAllConversationsUseCase = Depends(get_list_all_conversations_use_case),
+) -> AdminConversationListResponseDTO:
+    """Admin-only: list conversations across all users."""
+    conversations, total = use_case.execute(skip=skip, limit=limit)
+    logger.info(f"Admin {admin_id} listed conversations: skip={skip} limit={limit} total={total}")
+    return AdminConversationListResponseDTO(
+        conversations=conversations,
+        total=total,
+        skip=skip,
+        limit=limit,
+    )
+
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationResponseDTO)
+def get_conversation_by_id(
+    conversation_id: int,
+    admin_id: int = Depends(get_admin_user),
+    use_case: GetConversationUseCase = Depends(get_conversation_use_case),
+) -> ConversationResponseDTO:
+    """Admin-only: get any conversation (with messages) by id."""
+    return use_case.execute(conversation_id=conversation_id, user_id=admin_id, is_admin=True)
 
 
 

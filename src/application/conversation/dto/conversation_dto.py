@@ -70,3 +70,11 @@ class ConversationListResponseDTO(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+class AdminConversationListResponseDTO(BaseModel):
+    """Paginated list of conversations for admin inbox views."""
+    conversations: List[ConversationResponseDTO]
+    total: int
+    skip: int
+    limit: int
