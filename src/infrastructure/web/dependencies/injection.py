@@ -45,6 +45,13 @@ from src.application.booking.use_cases.booking_use_cases import (
     CreateBookingUseCase,
     ListAllBookingsUseCase,
     ListUserBookingsUseCase,
+    UpdateBookingStatusUseCase,
+)
+from src.application.plan.use_cases.plan_use_cases import (
+    ListPlansUseCase,
+    PurchasePlanUseCase,
+    VerifyPaymentUseCase,
+    GetUserSubscriptionUseCase,
 )
 from src.domain.request.repository.request_repository import RequestRepository
 from src.domain.user.repository.user_repository import UserRepository
@@ -58,8 +65,12 @@ from src.infrastructure.persistence.repositories.service_category_repository imp
 from src.infrastructure.persistence.repositories.service_vendor_repository import ServiceVendorRepository
 from src.infrastructure.persistence.repositories.vendor_image_repository import VendorImageRepository
 from src.infrastructure.persistence.repositories.booking_repository import BookingRepository
+from src.infrastructure.persistence.repositories.plan.plan_repository import PostgreSQLPlanRepository
+from src.infrastructure.persistence.repositories.plan.subscription_repository import PostgreSQLSubscriptionRepository
+from src.infrastructure.persistence.repositories.notification_repository import PostgreSQLNotificationRepository
 from src.infrastructure.auth.jwt_handler import get_user_id_from_token, get_token_claims
 from src.shared.logger.config import get_logger
+from src.application.notification.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
 
@@ -130,8 +141,17 @@ def get_submit_request_use_case(
     request_repository: RequestRepository = Depends(get_request_repository),
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
     vendor_repository: ServiceVendorRepository = Depends(get_service_vendor_repository),
+    user_repository: UserRepository = Depends(get_user_repository),
+    db: Session = Depends(get_db),
 ) -> SubmitRequestUseCase:
-    return SubmitRequestUseCase(request_repository, conversation_repository, vendor_repository)
+    notification_service = NotificationService(db)
+    return SubmitRequestUseCase(
+        request_repository,
+        conversation_repository,
+        vendor_repository,
+        notification_service,
+        user_repository,
+    )
 
 
 def get_request_use_case(
@@ -155,8 +175,10 @@ def get_conversation_use_case(
 
 def get_send_message_use_case(
     conversation_repository: ConversationRepository = Depends(get_conversation_repository),
+    db: Session = Depends(get_db),
 ) -> SendMessageUseCase:
-    return SendMessageUseCase(conversation_repository)
+    notification_service = NotificationService(db)
+    return SendMessageUseCase(conversation_repository, notification_service)
 
 
 def get_list_user_conversations_use_case(
@@ -168,8 +190,11 @@ def get_list_user_conversations_use_case(
 def get_create_booking_use_case(
     booking_repo: BookingRepository = Depends(get_booking_repository),
     request_repo: RequestRepository = Depends(get_request_repository),
+    vendor_repo: ServiceVendorRepository = Depends(get_service_vendor_repository),
+    db: Session = Depends(get_db),
 ) -> CreateBookingUseCase:
-    return CreateBookingUseCase(booking_repo, request_repo)
+    notification_service = NotificationService(db)
+    return CreateBookingUseCase(booking_repo, request_repo, vendor_repo, notification_service)
 
 
 def get_list_user_bookings_use_case(
@@ -186,6 +211,14 @@ def get_list_all_bookings_use_case(
     image_repo: VendorImageRepository = Depends(get_vendor_image_repository),
 ) -> ListAllBookingsUseCase:
     return ListAllBookingsUseCase(booking_repo, vendor_repo, image_repo)
+
+
+def get_update_booking_status_use_case(
+    booking_repo: BookingRepository = Depends(get_booking_repository),
+    db: Session = Depends(get_db),
+) -> UpdateBookingStatusUseCase:
+    notification_service = NotificationService(db)
+    return UpdateBookingStatusUseCase(booking_repo, notification_service)
 
 
 def get_list_all_conversations_use_case(
@@ -379,5 +412,50 @@ def get_current_admin_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
-    
-    return claims["user_id"]
+
+
+# ============= Plan Dependencies =============
+
+def get_plan_repository(db: Session = Depends(get_db)) -> PostgreSQLPlanRepository:
+    """Provide a plan repository."""
+    return PostgreSQLPlanRepository(db)
+
+
+def get_subscription_repository(db: Session = Depends(get_db)) -> PostgreSQLSubscriptionRepository:
+    """Provide a subscription repository."""
+    return PostgreSQLSubscriptionRepository(db)
+
+
+def get_list_plans_use_case(
+    plan_repo: PostgreSQLPlanRepository = Depends(get_plan_repository),
+) -> ListPlansUseCase:
+    """Provide list plans use case."""
+    return ListPlansUseCase(plan_repo)
+
+
+def get_purchase_plan_use_case(
+    plan_repo: PostgreSQLPlanRepository = Depends(get_plan_repository),
+    subscription_repo: PostgreSQLSubscriptionRepository = Depends(get_subscription_repository),
+    user_repo: UserRepository = Depends(get_user_repository),
+) -> PurchasePlanUseCase:
+    """Provide purchase plan use case."""
+    return PurchasePlanUseCase(plan_repo, subscription_repo, user_repo)
+
+
+def get_verify_payment_use_case(
+    subscription_repo: PostgreSQLSubscriptionRepository = Depends(get_subscription_repository),
+    user_repo: UserRepository = Depends(get_user_repository),
+    plan_repo: PostgreSQLPlanRepository = Depends(get_plan_repository),
+    db: Session = Depends(get_db),
+) -> VerifyPaymentUseCase:
+    """Provide verify payment use case."""
+    notification_service = NotificationService(db)
+    return VerifyPaymentUseCase(subscription_repo, user_repo, plan_repo, notification_service)
+
+
+def get_user_subscription_use_case(
+    subscription_repo: PostgreSQLSubscriptionRepository = Depends(get_subscription_repository),
+    plan_repo: PostgreSQLPlanRepository = Depends(get_plan_repository),
+) -> GetUserSubscriptionUseCase:
+    """Provide get user subscription use case."""
+    return GetUserSubscriptionUseCase(subscription_repo, plan_repo)

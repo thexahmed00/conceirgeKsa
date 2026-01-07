@@ -19,7 +19,7 @@ class UserCreateRequest(BaseModel):
     phone_number: Optional[str] = Field(None, description="Phone number")
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "john.doe@example.com",
                 "password": "SecurePassword123",
@@ -37,7 +37,7 @@ class UserLoginRequest(BaseModel):
     password: str = Field(..., description="User password")
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "john.doe@example.com",
                 "password": "SecurePassword123",
@@ -62,7 +62,7 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True  # orm_mode in Pydantic v2
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": 1,
                 "email": "john.doe@example.com",
@@ -87,13 +87,42 @@ class UserUpdateRequest(BaseModel):
     last_name: Optional[str] = Field(None, min_length=1, description="Last name")
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "phone_number": "+966501234567",
                 "first_name": "John",
                 "last_name": "Doe",
             }
         }
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request DTO for changing password."""
+    
+    current_password: str = Field(..., description="Current password")
+    new_password: str = Field(..., min_length=8, description="New password (min 8 chars)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "current_password": "OldPassword123",
+                "new_password": "NewSecurePassword456",
+            }
+        }
+
+
+class ChangePasswordResponse(BaseModel):
+    """Response DTO for password change."""
+    
+    success: bool = Field(..., description="Whether password was changed successfully")
+    message: str = Field(..., description="Success message")
+
+
+class DeleteAccountResponse(BaseModel):
+    """Response DTO for account deletion."""
+    
+    success: bool = Field(..., description="Whether account was deleted successfully")
+    message: str = Field(..., description="Deletion message")
 
 
 class TokenResponse(BaseModel):
@@ -104,7 +133,7 @@ class TokenResponse(BaseModel):
     expires_in: int = Field(..., description="Expiration time in seconds")
     
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",

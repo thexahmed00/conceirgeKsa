@@ -11,13 +11,13 @@ from src.application.conversation.dto.conversation_dto import (
     ConversationResponseDTO,
     AdminConversationListResponseDTO,
 )
-from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingResponseDTO, BookingListResponseDTO
+from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingResponseDTO, BookingListResponseDTO, BookingStatusUpdateDTO
 from src.application.conversation.use_cases.conversation_use_cases import (
     GetConversationUseCase,
     SendMessageUseCase,
     ListAllConversationsUseCase,
 )
-from src.application.booking.use_cases.booking_use_cases import ListAllBookingsUseCase
+from src.application.booking.use_cases.booking_use_cases import ListAllBookingsUseCase, UpdateBookingStatusUseCase
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.web.dependencies import (
     get_conversation_use_case,
@@ -28,6 +28,7 @@ from src.infrastructure.web.dependencies import (
     get_current_admin_user,
     get_list_all_conversations_use_case,
     get_list_all_bookings_use_case,
+    get_update_booking_status_use_case,
 )
 from src.infrastructure.web.dependencies import get_conversation_repository
 from src.shared.logger.config import get_logger
@@ -46,12 +47,12 @@ class AdminInfo(BaseModel):
     is_admin: bool
 
 
-async def get_admin_user(
+def get_admin_user(
     user_id: int = Depends(get_current_user),
     user_repo: UserRepository = Depends(get_user_repository),
 ):
     """Dependency to ensure user is an admin."""
-    user = await user_repo.find_by_id(user_id)
+    user = user_repo.find_by_id(user_id)
     
     if not user or not getattr(user, 'is_admin', False):
         raise HTTPException(
@@ -112,7 +113,25 @@ def list_all_bookings(
     return result
 
 
-
+@router.patch("/bookings/{booking_id}/status", response_model=BookingResponseDTO)
+def update_booking_status(
+    booking_id: int,
+    dto: BookingStatusUpdateDTO,
+    admin_id: int = Depends(get_admin_user),
+    use_case: UpdateBookingStatusUseCase = Depends(get_update_booking_status_use_case),
+) -> BookingResponseDTO:
+    """
+    Admin-only: Update booking status.
+    
+    Valid statuses: upcoming, completed, cancelled
+    
+    - Mark booking as completed when service is done
+    - Mark booking as cancelled if user cancels
+    - Cannot change completed booking back to upcoming
+    """
+    result = use_case.execute(booking_id, dto.status, admin_id)
+    logger.info(f"Admin {admin_id} updated booking {booking_id} status to {dto.status}")
+    return result
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=MessageResponseDTO, status_code=status.HTTP_201_CREATED)

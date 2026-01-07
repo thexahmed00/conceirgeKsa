@@ -16,7 +16,7 @@ class PostgreSQLUserRepository:
         """Initialize repository with database session."""
         self._session = db_session
 
-    async def save(self, user: User) -> User:
+    def save(self, user: User) -> User:
         """Save a new user to database.
         
         Args:
@@ -54,7 +54,7 @@ class PostgreSQLUserRepository:
                 raise DuplicateResourceError(f"User with email {user.email} already exists")
             raise
 
-    async def find_by_id(self, user_id: int) -> Optional[User]:
+    def find_by_id(self, user_id: int) -> Optional[User]:
         """Retrieve user by ID.
         
         Args:
@@ -69,7 +69,7 @@ class PostgreSQLUserRepository:
 
         return self._to_entity(model) if model else None
 
-    async def find_by_email(self, email: str) -> Optional[User]:
+    def find_by_email(self, email: str) -> Optional[User]:
         """Retrieve user by email.
         
         Args:
@@ -101,7 +101,7 @@ class PostgreSQLUserRepository:
         user.is_admin = getattr(model, 'is_admin', False)
         return user
 
-    async def update(self, user: User) -> User:
+    def update(self, user: User) -> User:
         """Update an existing user.
         
         Args:
@@ -119,8 +119,41 @@ class PostgreSQLUserRepository:
             model.last_name = user.last_name
             model.full_name = f"{user.first_name} {user.last_name}"
             model.phone_number = user.phone_number
+            model.hashed_password = user.hashed_password  # Allow password updates
             self._session.commit()
             self._session.refresh(model)
             return self._to_entity(model)
         
         return user
+
+    def delete(self, user_id: int) -> bool:
+        """Delete a user by ID.
+        
+        Args:
+            user_id: User ID to delete
+            
+        Returns:
+            True if deleted, False if not found
+        """
+        model = self._session.query(UserModel).filter(
+            UserModel.id == user_id
+        ).first()
+        
+        if model:
+            self._session.delete(model)
+            self._session.commit()
+            return True
+        
+        return False
+
+    def find_all_admins(self):
+        """Find all admin users.
+        
+        Returns:
+            List of admin User entities
+        """
+        models = self._session.query(UserModel).filter(
+            UserModel.is_admin == True
+        ).all()
+        
+        return [self._to_entity(m) for m in models]

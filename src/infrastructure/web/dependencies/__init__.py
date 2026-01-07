@@ -30,6 +30,7 @@ from src.infrastructure.web.dependencies.injection import (
 	get_create_booking_use_case,
 	get_list_user_bookings_use_case,
 	get_list_all_bookings_use_case,
+	get_update_booking_status_use_case,
 	get_create_vendor_use_case,
 	get_update_vendor_use_case,
 	get_delete_vendor_use_case,
@@ -37,6 +38,13 @@ from src.infrastructure.web.dependencies.injection import (
 	get_delete_vendor_image_use_case,
 	get_reorder_vendor_images_use_case,
 	get_vendor_image_use_case,
+	# Plan dependencies
+	get_plan_repository,
+	get_subscription_repository,
+	get_list_plans_use_case,
+	get_purchase_plan_use_case,
+	get_verify_payment_use_case,
+	get_user_subscription_use_case,
 )
 
 __all__ = [
@@ -77,4 +85,11 @@ __all__ = [
 	"get_create_booking_use_case",
 	"get_list_user_bookings_use_case",
 	"get_list_all_bookings_use_case",
+	# Plan exports
+	"get_plan_repository",
+	"get_subscription_repository",
+	"get_list_plans_use_case",
+	"get_purchase_plan_use_case",
+	"get_verify_payment_use_case",
+	"get_user_subscription_use_case",
 ]

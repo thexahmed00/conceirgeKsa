@@ -33,3 +33,7 @@ class BookingListResponseDTO(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+class BookingStatusUpdateDTO(BaseModel):
+    status: str  # upcoming, completed, cancelled

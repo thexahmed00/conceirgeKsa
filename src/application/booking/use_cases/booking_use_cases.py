@@ -12,14 +12,19 @@ from src.application.booking.dto.booking_dto import (
 )
 from src.domain.booking.entities.booking import Booking
 from src.domain.shared.exceptions import ResourceNotFoundError, AccessDeniedError, ValidationError
+from src.shared.logger.config import get_logger
+
+logger = get_logger(__name__)
 
 
 class CreateBookingUseCase:
     """Create a booking for a confirmed request (admin action)."""
 
-    def __init__(self, booking_repo: BookingRepository, request_repo: RequestRepository):
+    def __init__(self, booking_repo: BookingRepository, request_repo: RequestRepository, vendor_repo: ServiceVendorRepository = None, notification_service=None):
         self.booking_repo = booking_repo
         self.request_repo = request_repo
+        self.vendor_repo = vendor_repo
+        self.notification_service = notification_service
 
     def execute(self, dto: BookingCreateDTO, admin_id: int) -> BookingResponseDTO:
         # Lookup request
@@ -43,6 +48,18 @@ class CreateBookingUseCase:
             raise ValidationError(f"Cannot confirm booking for request in status '{request.status}'")
 
         self.request_repo.update(request)
+        
+        # Notify user about request status update
+        if self.notification_service:
+            try:
+                self.notification_service.notify_request_updated(
+                    user_id=request.user_id,
+                    request_id=request.request_id,
+                    status=request.status,
+                )
+            except Exception as e:
+                # Don't fail booking creation if notification fails
+                logger.error(f"Failed to send request update notification: {e}")
 
         # Create booking entity
         booking = Booking.create(
@@ -56,6 +73,20 @@ class CreateBookingUseCase:
         )
 
         saved = self.booking_repo.save(booking)
+
+        # Send notification to user about booking confirmation
+        if self.notification_service and self.vendor_repo:
+            try:
+                vendor = self.vendor_repo.find_by_id(saved.vendor_id)
+                booking_details = f"{vendor.name}" if vendor else "your booking"
+                self.notification_service.notify_booking_confirmed(
+                    user_id=saved.user_id,
+                    booking_id=saved.booking_id,
+                    booking_details=booking_details,
+                )
+            except Exception as e:
+                # Don't fail booking creation if notification fails
+                logger.error(f"Failed to send booking notification: {e}")
 
         return BookingResponseDTO(
             id=saved.booking_id,
@@ -184,4 +215,75 @@ class ListAllBookingsUseCase:
             total=total,
             skip=skip,
             limit=limit,
+        )
+
+
+class UpdateBookingStatusUseCase:
+    """Admin use case to update booking status."""
+
+    def __init__(self, booking_repo: BookingRepository, notification_service=None):
+        self.booking_repo = booking_repo
+        self.notification_service = notification_service
+
+    def execute(self, booking_id: int, new_status: str, admin_id: int) -> BookingResponseDTO:
+        # Validate status
+        normalized_status = new_status.lower().strip()
+        if normalized_status not in Booking.VALID_STATUSES:
+            raise ValidationError(
+                f"Invalid status '{new_status}'. Expected one of: upcoming|completed|cancelled"
+            )
+
+        # Find booking
+        booking = self.booking_repo.find_by_id(booking_id)
+        if not booking:
+            raise ResourceNotFoundError(f"Booking {booking_id} not found")
+
+        old_status = booking.status
+
+        # Update status based on action
+        if normalized_status == "completed":
+            booking.complete()
+        elif normalized_status == "cancelled":
+            booking.cancel()
+        elif normalized_status == "upcoming":
+            # Allow resetting to upcoming if not completed
+            if booking.status == "completed":
+                raise ValidationError("Cannot change completed booking back to upcoming")
+            booking.status = "upcoming"
+
+        # Save changes
+        updated_booking = self.booking_repo.update(booking)
+
+        # Notify user about status change
+        if self.notification_service and old_status != normalized_status:
+            try:
+                if normalized_status == "completed":
+                    from src.domain.notification.entities.notification import NotificationType
+                    self.notification_service.create_notification(
+                        user_id=updated_booking.user_id,
+                        title="Booking Completed",
+                        message="Your booking has been completed successfully. Thank you for choosing our services! We hope you had a great experience.",
+                        notification_type=NotificationType.GENERAL,
+                        related_id=booking_id,
+                    )
+                elif normalized_status == "cancelled":
+                    self.notification_service.notify_booking_cancelled(
+                        user_id=updated_booking.user_id,
+                        booking_id=booking_id,
+                    )
+            except Exception as e:
+                logger.error(f"Failed to send booking status notification: {e}")
+
+        logger.info(f"Admin {admin_id} updated booking {booking_id} status from {old_status} to {normalized_status}")
+
+        return BookingResponseDTO(
+            id=updated_booking.booking_id,
+            request_id=updated_booking.request_id,
+            user_id=updated_booking.user_id,
+            vendor_id=updated_booking.vendor_id,
+            start_at=updated_booking.start_at,
+            end_at=updated_booking.end_at,
+            status=updated_booking.status,
+            notes=updated_booking.notes,
+            created_at=updated_booking.created_at,
         )

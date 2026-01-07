@@ -6,6 +6,7 @@ import logging
 from src.config import settings
 from src.shared.logger.config import get_logger
 from src.infrastructure.persistence.database import init_db, close_db
+from src.infrastructure.tasks import start_scheduler, stop_scheduler
 from src.infrastructure.web.api.routers import auth
 from src.infrastructure.web.api.routers import requests
 from src.infrastructure.web.api.routers import conversations
@@ -15,6 +16,11 @@ from src.infrastructure.web.api.routers import websocket_docs
 from src.infrastructure.web.api.routers import services
 from src.infrastructure.web.api.routers import admin_services
 from src.infrastructure.web.api.routers import bookings
+from src.infrastructure.web.api.routers import plans
+from src.infrastructure.web.api.routers import notifications
+from src.infrastructure.web.api.routers import content
+from src.infrastructure.web.api.routers import admin_plans
+from src.infrastructure.web.api.routers import admin_tasks
 from src.infrastructure.web.api.websocket import chat
 from src.domain.shared.exceptions import (
     AccessDeniedError,
@@ -75,10 +81,19 @@ async def startup_event():
     # Initialize DB tables (creates missing tables in dev). In production use Alembic migrations.
     init_db()
     logger.info("Database initialized")
+    
+    # Start background scheduler for periodic tasks
+    start_scheduler()
+    logger.info("Background scheduler started")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("AJLA API shutting down...")
+    
+    # Stop background scheduler
+    stop_scheduler()
+    
+    # Close database connections
     close_db()
 
 @app.get("/")
@@ -100,6 +115,11 @@ app.include_router(admin_services.router)
 app.include_router(websocket_docs.router)  # WebSocket documentation endpoint
 app.include_router(chat.router)  # WebSocket endpoint (won't show in Swagger)
 app.include_router(bookings.router)
+app.include_router(plans.router)
+app.include_router(notifications.router)
+app.include_router(content.router)
+app.include_router(admin_plans.router)
+app.include_router(admin_tasks.router)
 
 if __name__ == "__main__":
     import uvicorn

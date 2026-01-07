@@ -7,6 +7,8 @@ from src.infrastructure.web.api.websocket.connection_manager import manager
 from src.infrastructure.web.dependencies import get_db
 from src.infrastructure.auth.jwt_handler import get_token_claims
 from src.infrastructure.persistence.repositories.conversation_repository import ConversationRepository
+from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
+from src.application.notification.services.notification_service import NotificationService
 from src.domain.conversation.entities.conversation import Message
 from src.shared.logger.config import get_logger
 
@@ -386,6 +388,28 @@ async def websocket_chat(
                     content=content,
                 )
                 saved_message = conversation_repo.add_message(message)
+                
+                # Send notification to the other party (if user sends, notify admin; if admin sends, notify user)
+                try:
+                    user_repo = PostgreSQLUserRepository(db)
+                    notification_service = NotificationService(db)
+                    
+                    if sender_type == "user":
+                        # User sent message - notify admins (skip for now, can be enhanced later)
+                        pass
+                    else:
+                        # Admin sent message - notify the conversation's user
+                        sender = user_repo.find_by_id(user_id)
+                        sender_name = sender.full_name if sender and sender.full_name else "Support Team"
+                        
+                        notification_service.notify_message_received(
+                            user_id=conversation.user_id,
+                            conversation_id=conversation_id,
+                            sender_name=sender_name,
+                        )
+                except Exception as e:
+                    # Don't fail message sending if notification fails
+                    logger.error(f"Failed to send message notification: {e}")
                 
                 # Broadcast to all connected clients
                 await manager.broadcast(conversation_id, {

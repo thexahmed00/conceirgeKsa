@@ -55,8 +55,9 @@ class GetConversationUseCase:
 class SendMessageUseCase:
     """Send a message in a conversation."""
     
-    def __init__(self, conversation_repo: ConversationRepository):
+    def __init__(self, conversation_repo: ConversationRepository, notification_service=None):
         self.conversation_repo = conversation_repo
+        self.notification_service = notification_service
     
     def execute(
         self,
@@ -64,6 +65,7 @@ class SendMessageUseCase:
         user_id: int,
         dto: MessageCreateDTO,
         sender_type: str = "user",
+        sender_name: str = None,
     ) -> MessageResponseDTO:
         # Verify conversation exists and user has access
         conversation = self.conversation_repo.find_by_id(conversation_id)
@@ -85,6 +87,20 @@ class SendMessageUseCase:
         
         # Save message
         saved_message = self.conversation_repo.add_message(message)
+        
+        # Send notification to the other party
+        if self.notification_service:
+            try:
+                if sender_type == "admin":
+                    # Admin sent message - notify the conversation's user
+                    self.notification_service.notify_message_received(
+                        user_id=conversation.user_id,
+                        conversation_id=conversation_id,
+                        sender_name=sender_name or "Support Team",
+                    )
+            except Exception:
+                # Don't fail message sending if notification fails
+                pass
         
         return MessageResponseDTO(
             id=saved_message.message_id,

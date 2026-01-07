@@ -18,10 +18,14 @@ class SubmitRequestUseCase:
         request_repo: RequestRepository,
         conversation_repo: ConversationRepository,
         vendor_repo: ServiceVendorRepository,
+        notification_service=None,
+        user_repo=None,
     ):
         self.request_repo = request_repo
         self.conversation_repo = conversation_repo
         self.vendor_repo = vendor_repo
+        self.notification_service = notification_service
+        self.user_repo = user_repo
     
     def execute(self, dto: RequestCreateDTO, user_id: int) -> RequestResponseDTO:
         # 1. Look up vendor to get category and title
@@ -60,7 +64,27 @@ class SubmitRequestUseCase:
         )
         self.conversation_repo.add_message(first_message)
         
-        # 6. Return response
+        # 6. Notify all admins about new request
+        if self.notification_service and self.user_repo:
+            try:
+                # Get user name for notification
+                user = self.user_repo.find_by_id(user_id)
+                user_name = f"{user.first_name} {user.last_name}" if user else None
+                
+                # Get all admin users
+                admins = self.user_repo.find_all_admins()
+                for admin in admins:
+                    self.notification_service.notify_new_request(
+                        admin_user_id=admin.user_id,
+                        request_id=saved_request.request_id,
+                        request_title=title,
+                        user_name=user_name,
+                    )
+            except Exception:
+                # Don't fail request submission if notification fails
+                pass
+        
+        # 7. Return response
         return RequestResponseDTO(
             id=saved_request.request_id,
             user_id=saved_request.user_id,

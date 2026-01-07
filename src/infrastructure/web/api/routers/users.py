@@ -2,7 +2,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.application.user.dto.user_dto import UserResponse, UserUpdateRequest
+from src.application.user.dto.user_dto import (
+    UserResponse,
+    UserUpdateRequest,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    DeleteAccountResponse,
+)
+from src.application.user.use_cases.user_use_cases import (
+    ChangePasswordUseCase,
+    DeleteAccountUseCase,
+)
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.web.dependencies import get_current_user, get_user_repository
 from src.shared.logger.config import get_logger
@@ -16,12 +26,12 @@ router = APIRouter(
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_profile(
+def get_current_user_profile(
     user_id: int = Depends(get_current_user),
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserResponse:
     """Get the current authenticated user's profile."""
-    user = await user_repo.find_by_id(user_id)
+    user = user_repo.find_by_id(user_id)
     
     if not user:
         raise HTTPException(
@@ -45,13 +55,13 @@ async def get_current_user_profile(
 
 
 @router.put("/me", response_model=UserResponse)
-async def update_current_user_profile(
+def update_current_user_profile(
     update_data: UserUpdateRequest,
     user_id: int = Depends(get_current_user),
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserResponse:
     """Update the current authenticated user's profile."""
-    user = await user_repo.find_by_id(user_id)
+    user = user_repo.find_by_id(user_id)
     
     if not user:
         raise HTTPException(
@@ -68,7 +78,7 @@ async def update_current_user_profile(
         user.phone_number = update_data.phone_number
     
     # Save changes
-    updated_user = await user_repo.update(user)
+    updated_user = user_repo.update(user)
     
     logger.info(f"User profile updated: {updated_user.email}")
     
@@ -85,3 +95,42 @@ async def update_current_user_profile(
         created_at=updated_user.created_at,
         updated_at=updated_user.updated_at,
     )
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+def change_password(
+    request: ChangePasswordRequest,
+    user_id: int = Depends(get_current_user),
+    user_repo: UserRepository = Depends(get_user_repository),
+) -> ChangePasswordResponse:
+    """Change the current user's password."""
+    use_case = ChangePasswordUseCase(user_repo)
+    
+    try:
+        response = use_case.execute(user_id, request)
+        return response
+    except Exception as e:
+        logger.error(f"Error changing password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.delete("/me", response_model=DeleteAccountResponse)
+def delete_account(
+    user_id: int = Depends(get_current_user),
+    user_repo: UserRepository = Depends(get_user_repository),
+) -> DeleteAccountResponse:
+    """Delete the current user's account."""
+    use_case = DeleteAccountUseCase(user_repo)
+    
+    try:
+        response = use_case.execute(user_id)
+        return response
+    except Exception as e:
+        logger.error(f"Error deleting account: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

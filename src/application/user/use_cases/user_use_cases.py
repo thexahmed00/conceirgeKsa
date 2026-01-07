@@ -3,7 +3,14 @@
 from datetime import datetime, timedelta
 from typing import Tuple
 
-from src.application.user.dto.user_dto import UserCreateRequest, UserLoginRequest, UserResponse
+from src.application.user.dto.user_dto import (
+    UserCreateRequest,
+    UserLoginRequest,
+    UserResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    DeleteAccountResponse,
+)
 from src.domain.user.entities.user import User
 from src.domain.user.repository.user_repository import UserRepository
 from src.domain.shared.exceptions import InvalidUserError, DuplicateResourceError
@@ -17,7 +24,7 @@ class CreateUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
-    async def execute(self, request: UserCreateRequest) -> UserResponse:
+    def execute(self, request: UserCreateRequest) -> UserResponse:
         """Create new user account.
         
         Args:
@@ -30,7 +37,7 @@ class CreateUserUseCase:
             DuplicateResourceError: If email already exists
         """
         # Check for duplicate email
-        existing_user = await self._user_repository.find_by_email(request.email)
+        existing_user = self._user_repository.find_by_email(request.email)
         if existing_user:
             raise DuplicateResourceError(f"User with email {request.email} already exists")
 
@@ -48,7 +55,7 @@ class CreateUserUseCase:
         )
 
         # Save to database
-        saved_user = await self._user_repository.save(user)
+        saved_user = self._user_repository.save(user)
 
         # Simple logging
         import logging
@@ -76,7 +83,7 @@ class AuthenticateUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
-    async def execute(self, request: UserLoginRequest) -> Tuple[UserResponse, str]:
+    def execute(self, request: UserLoginRequest) -> Tuple[UserResponse, str]:
         """Authenticate user with email and password.
         
         Args:
@@ -89,7 +96,7 @@ class AuthenticateUserUseCase:
             InvalidUserError: If email not found or password incorrect
         """
         # Find user by email
-        user = await self._user_repository.find_by_email(request.email)
+        user = self._user_repository.find_by_email(request.email)
         if not user:
             raise InvalidUserError(f"User with email {request.email} not found")
 
@@ -136,7 +143,7 @@ class GetUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self._user_repository = user_repository
 
-    async def execute(self, user_id: int) -> UserResponse:
+    def execute(self, user_id: int) -> UserResponse:
         """Get user by ID.
         
         Args:
@@ -148,7 +155,7 @@ class GetUserUseCase:
         Raises:
             InvalidUserError: If user not found
         """
-        user = await self._user_repository.find_by_id(user_id)
+        user = self._user_repository.find_by_id(user_id)
         if not user:
             raise InvalidUserError(f"User {user_id} not found")
 
@@ -164,3 +171,87 @@ class GetUserUseCase:
             created_at=user.created_at,
             updated_at=user.updated_at,
         )
+
+
+class ChangePasswordUseCase:
+    """Change user password use case."""
+
+    def __init__(self, user_repository: UserRepository):
+        self._user_repository = user_repository
+
+    def execute(self, user_id: int, request: ChangePasswordRequest) -> ChangePasswordResponse:
+        """Change user password.
+        
+        Args:
+            user_id: User ID
+            request: Change password request DTO
+            
+        Returns:
+            ChangePasswordResponse DTO
+            
+        Raises:
+            InvalidUserError: If user not found or current password incorrect
+        """
+        user = self._user_repository.find_by_id(user_id)
+        if not user:
+            raise InvalidUserError(f"User {user_id} not found")
+
+        # Verify current password
+        if not user.authenticate(request.current_password):
+            raise InvalidUserError("Current password is incorrect")
+
+        # Hash new password and update
+        new_hashed_pwd = hash_password(request.new_password)
+        user.hashed_password = new_hashed_pwd
+
+        # Save updated user
+        self._user_repository.update(user)
+
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Password changed for user: {user.email}")
+
+        return ChangePasswordResponse(
+            success=True,
+            message="Password changed successfully"
+        )
+
+
+class DeleteAccountUseCase:
+    """Delete user account use case."""
+
+    def __init__(self, user_repository: UserRepository):
+        self._user_repository = user_repository
+
+    def execute(self, user_id: int) -> DeleteAccountResponse:
+        """Delete user account.
+        
+        Args:
+            user_id: User ID to delete
+            
+        Returns:
+            DeleteAccountResponse DTO
+            
+        Raises:
+            InvalidUserError: If user not found
+        """
+        user = self._user_repository.find_by_id(user_id)
+        if not user:
+            raise InvalidUserError(f"User {user_id} not found")
+
+        # Delete user
+        success = self._user_repository.delete(user_id)
+
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        if success:
+            logger.info(f"Account deleted for user: {user.email}")
+            return DeleteAccountResponse(
+                success=True,
+                message="Account deleted successfully"
+            )
+        else:
+            logger.error(f"Failed to delete account for user: {user.email}")
+            raise InvalidUserError("Failed to delete account")
+

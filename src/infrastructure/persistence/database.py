@@ -13,6 +13,9 @@ from src.infrastructure.persistence.models.service import (
     ServiceCategoryModel, ServiceVendorModel, VendorImageModel
 )
 from src.infrastructure.persistence.models.booking import BookingModel
+from src.infrastructure.persistence.models.plan import PlanModel, SubscriptionModel
+from src.infrastructure.persistence.models.notification import NotificationModel
+from src.infrastructure.persistence.models.content import BannerModel, CityModel
 
 # Create engine with NullPool for async contexts
 engine = create_engine(

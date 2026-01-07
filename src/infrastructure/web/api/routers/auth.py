@@ -31,13 +31,13 @@ router = APIRouter(
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(
+def register(
     request: UserCreateRequest,
     use_case: CreateUserUseCase = Depends(get_create_user_use_case),
 ) -> UserResponse:
 
     try:
-        user_response = await use_case.execute(request)
+        user_response = use_case.execute(request)
         
         logger.info(f"User registered: {user_response.email}")
         
@@ -63,7 +63,7 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
-async def login(
+def login(
     request: UserLoginRequest,
     use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case),
 ) -> TokenResponse:
@@ -81,7 +81,7 @@ async def login(
         HTTPException 401: If credentials invalid
     """
     try:
-        user_response, token = await use_case.execute(request)
+        user_response, token = use_case.execute(request)
         
         logger.info(f"User authenticated: {user_response.email}")
         
@@ -106,7 +106,7 @@ async def login(
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_profile(
+def get_current_user_profile(
     current_user: int = Depends(get_current_user),
     use_case: GetUserUseCase = Depends(get_user_use_case),
 ) -> UserResponse:
@@ -124,7 +124,7 @@ async def get_current_user_profile(
         HTTPException 404: If user not found
     """
     try:
-        user_response = await use_case.execute(current_user)
+        user_response = use_case.execute(current_user)
         
         return user_response
     except InvalidUserError as e:
