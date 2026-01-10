@@ -38,6 +38,9 @@ services:
     depends_on:
       transaction-db:
         condition: service_healthy
+    # Run migrations before starting the API
+    entrypoint: >
+      sh -c "alembic upgrade head && python main.py"
     restart: unless-stopped
 
 volumes:

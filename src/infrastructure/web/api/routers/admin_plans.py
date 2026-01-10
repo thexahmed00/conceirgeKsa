@@ -46,7 +46,7 @@ async def list_all_plans(
     """
     use_case = ListPlansUseCase(plan_repo)
     # Get all plans, not just active ones
-    plans = await plan_repo.find_all(active_only=False)
+    plans = plan_repo.find_all(active_only=False)
     
     import json
     plan_dtos = []
