@@ -24,6 +24,7 @@ class ServiceVendorRepository(IServiceVendorRepository):
             phone=vendor.phone,
             website=vendor.website,
             whatsapp=vendor.whatsapp,
+            city=vendor.city,
             rating=vendor.rating,
             vendor_metadata=vendor.metadata,
             is_active=vendor.is_active,
@@ -52,8 +53,9 @@ class ServiceVendorRepository(IServiceVendorRepository):
         skip: int = 0,
         limit: int = 20,
         active_only: bool = True,
+        city: Optional[str] = None,
     ) -> Tuple[List[ServiceVendor], int]:
-        """Find all vendors for a category with pagination."""
+        """Find all vendors for a category with pagination and optional city filter."""
         query = (
             self.db.query(ServiceVendorModel)
             .options(joinedload(ServiceVendorModel.category))
@@ -62,6 +64,9 @@ class ServiceVendorRepository(IServiceVendorRepository):
         
         if active_only:
             query = query.filter(ServiceVendorModel.is_active.is_(True))
+        
+        if city:
+            query = query.filter(ServiceVendorModel.city == city)
         
         total = query.count()
         
@@ -81,8 +86,9 @@ class ServiceVendorRepository(IServiceVendorRepository):
         skip: int = 0,
         limit: int = 20,
         active_only: bool = True,
+        city: Optional[str] = None,
     ) -> Tuple[List[ServiceVendor], int]:
-        """Find all vendors for a category by slug with pagination."""
+        """Find all vendors for a category by slug with pagination and optional city filter."""
         query = (
             self.db.query(ServiceVendorModel)
             .join(ServiceCategoryModel)
@@ -92,6 +98,9 @@ class ServiceVendorRepository(IServiceVendorRepository):
         
         if active_only:
             query = query.filter(ServiceVendorModel.is_active.is_(True))
+        
+        if city:
+            query = query.filter(ServiceVendorModel.city == city)
         
         total = query.count()
         
@@ -110,11 +119,44 @@ class ServiceVendorRepository(IServiceVendorRepository):
         skip: int = 0,
         limit: int = 20,
         active_only: bool = True,
+        city: Optional[str] = None,
     ) -> Tuple[List[ServiceVendor], int]:
-        """Find all vendors with pagination."""
+        """Find all vendors with pagination and optional city filter."""
         query = (
             self.db.query(ServiceVendorModel)
             .options(joinedload(ServiceVendorModel.category))
+        )
+        
+        if active_only:
+            query = query.filter(ServiceVendorModel.is_active.is_(True))
+        
+        if city:
+            query = query.filter(ServiceVendorModel.city == city)
+        
+        total = query.count()
+        
+        db_vendors = (
+            query
+            .order_by(ServiceVendorModel.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        
+        return [self._to_entity(v) for v in db_vendors], total
+    
+    def find_by_city(
+        self,
+        city: str,
+        skip: int = 0,
+        limit: int = 20,
+        active_only: bool = True,
+    ) -> Tuple[List[ServiceVendor], int]:
+        """Find all vendors in a specific city with pagination."""
+        query = (
+            self.db.query(ServiceVendorModel)
+            .options(joinedload(ServiceVendorModel.category))
+            .filter(ServiceVendorModel.city == city)
         )
         
         if active_only:
@@ -124,7 +166,7 @@ class ServiceVendorRepository(IServiceVendorRepository):
         
         db_vendors = (
             query
-            .order_by(ServiceVendorModel.created_at.desc())
+            .order_by(ServiceVendorModel.rating.desc(), ServiceVendorModel.name.asc())
             .offset(skip)
             .limit(limit)
             .all()
@@ -147,6 +189,7 @@ class ServiceVendorRepository(IServiceVendorRepository):
             db_vendor.phone = vendor.phone
             db_vendor.website = vendor.website
             db_vendor.whatsapp = vendor.whatsapp
+            db_vendor.city = vendor.city
             db_vendor.rating = vendor.rating
             db_vendor.vendor_metadata = vendor.metadata
             db_vendor.is_active = vendor.is_active
@@ -203,6 +246,7 @@ class ServiceVendorRepository(IServiceVendorRepository):
             phone=model.phone,
             website=model.website,
             whatsapp=model.whatsapp,
+            city=model.city,
             rating=model.rating,
             metadata=model.vendor_metadata or {},
             is_active=model.is_active,

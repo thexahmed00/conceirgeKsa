@@ -254,4 +254,3 @@ class DeleteAccountUseCase:
         else:
             logger.error(f"Failed to delete account for user: {user.email}")
             raise InvalidUserError("Failed to delete account")
-

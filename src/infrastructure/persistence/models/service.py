@@ -46,6 +46,9 @@ class ServiceVendorModel(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     
+    # City/Location
+    city = Column(String(100), nullable=True)
+    
     # Contact info
     address = Column(String(500), nullable=True)
     phone = Column(String(50), nullable=True)
@@ -77,6 +80,7 @@ class ServiceVendorModel(Base):
         Index('idx_vendor_category_id', 'category_id'),
         Index('idx_vendor_is_active', 'is_active'),
         Index('idx_vendor_rating', 'rating'),
+        Index('idx_vendor_city', 'city'),
         Index('idx_vendor_created_at', 'created_at'),
     )
     

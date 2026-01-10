@@ -50,27 +50,33 @@ from typing import Optional
     "/categories/{category_slug}/vendors",
     response_model=VendorListResponseDTO,
     summary="List Vendors (by Category or All)",
-    description="List vendors for a specific category (or all if not provided). Provides thumbnail and basic info for list view."
+    description="List vendors for a specific category (or all if not provided). Provides thumbnail and basic info for list view. Supports filtering by city."
 )
 @router.get(
     "/vendors",
     response_model=VendorListResponseDTO,
     summary="List All Vendors",
-    description="List all vendors. Provides thumbnail and basic info for list view."
+    description="List all vendors. Provides thumbnail and basic info for list view. Supports filtering by city."
 )
 def list_vendors(
     category_slug: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    city: Optional[str] = Query(None, description="Filter vendors by city"),
     use_case: ListVendorsByCategoryUseCase = Depends(get_list_vendors_by_category_use_case),
 ) -> VendorListResponseDTO:
     """
-    List all vendors, or filter by category if category_slug is provided. Provides thumbnail and basic info for list view.
+    List all vendors, or filter by category if category_slug is provided. 
+    Supports optional city filter to get vendors in a specific city.
+    
+    Query Parameters:
+    - city: Optional city name to filter vendors (e.g., ?city=Riyadh)
     """
     return use_case.execute(
         category_slug=category_slug,
         skip=skip,
         limit=limit,
+        city=city,
     )
 
 

@@ -29,20 +29,23 @@ class ListVendorsByCategoryUseCase:
         category_slug: Optional[str] = None,
         skip: int = 0,
         limit: int = 20,
+        city: Optional[str] = None,
     ) -> VendorListResponseDTO:
-        """Get vendors for a category with pagination. If category_slug is None, list all vendors."""
+        """Get vendors for a category with pagination and optional city filter. If category_slug is None, list all vendors."""
         if category_slug:
             vendors, total = self.vendor_repo.find_by_category_slug(
                 category_slug=category_slug,
                 skip=skip,
                 limit=limit,
                 active_only=True,
+                city=city,
             )
         else:
             vendors, total = self.vendor_repo.find_all(
                 skip=skip,
                 limit=limit,
                 active_only=True,
+                city=city,
             )
 
         vendor_dtos = []
@@ -63,6 +66,7 @@ class ListVendorsByCategoryUseCase:
                     thumbnail_url=hero_url,
                     rating=vendor.rating,
                     short_description=short_desc,
+                    city=vendor.city,
                     address=vendor.address,
                 )
             )

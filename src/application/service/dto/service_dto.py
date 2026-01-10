@@ -110,6 +110,7 @@ class VendorListItemDTO(BaseModel):
     thumbnail_url: Optional[str] = None  # First hero image thumbnail
     rating: float
     short_description: str  # Truncated description
+    city: Optional[str] = None
     address: Optional[str] = None
     
     class Config:
@@ -138,6 +139,9 @@ class VendorDetailDTO(BaseModel):
     # Basic info
     name: str
     description: str
+    
+    # Location
+    city: Optional[str] = None
     
     # Contact
     address: Optional[str] = None
@@ -188,6 +192,9 @@ class VendorCreateDTO(BaseModel):
         description="Vendor description"
     )
     
+    # Location
+    city: Optional[str] = Field(None, max_length=100, description="City where vendor operates (e.g., Riyadh, Jeddah)")
+    
     # Contact (optional)
     address: Optional[str] = Field(None, max_length=500)
     phone: Optional[str] = Field(None, max_length=50)
@@ -212,6 +219,7 @@ class VendorCreateDTO(BaseModel):
                 "category_slug": "restaurant",
                 "name": "Cafe Bonjour",
                 "description": "Experience authentic Italian flavors with a modern touch. Cafe Bonjour is known for its handmade pasta, wood-fired pizza, and romantic candle-lit ambiance.",
+                "city": "Riyadh",
                 "address": "1568 London Road, Rosalynnmouth 21327",
                 "phone": "+123 456 789",
                 "website": "www.CafeBonjour.com",
@@ -236,6 +244,7 @@ class VendorUpdateDTO(BaseModel):
     """Input for updating a vendor."""
     name: Optional[str] = Field(None, min_length=2, max_length=255)
     description: Optional[str] = Field(None, min_length=10)
+    city: Optional[str] = Field(None, max_length=100)
     address: Optional[str] = Field(None, max_length=500)
     phone: Optional[str] = Field(None, max_length=50)
     website: Optional[str] = Field(None, max_length=255)
@@ -248,6 +257,7 @@ class VendorUpdateDTO(BaseModel):
         json_schema_extra = {
             "example": {
                 "name": "Cafe Bonjour Updated",
+                "city": "Riyadh",
                 "rating": 4.5,
                 "metadata": {
                     "cuisine": "Italian – Mediterranean",

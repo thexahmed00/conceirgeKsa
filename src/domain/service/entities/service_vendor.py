@@ -23,6 +23,7 @@ class ServiceVendor:
         phone: Optional[str] = None,
         website: Optional[str] = None,
         whatsapp: Optional[str] = None,
+        city: Optional[str] = None,
         rating: float = 0.0,
         metadata: Optional[Dict[str, Any]] = None,
         is_active: bool = True,
@@ -40,6 +41,7 @@ class ServiceVendor:
         self.phone = phone
         self.website = website
         self.whatsapp = whatsapp
+        self.city = city
         self.rating = rating
         self.metadata = metadata or {}
         self.is_active = is_active
@@ -59,6 +61,7 @@ class ServiceVendor:
         phone: Optional[str] = None,
         website: Optional[str] = None,
         whatsapp: Optional[str] = None,
+        city: Optional[str] = None,
         rating: float = 0.0,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> "ServiceVendor":
@@ -84,6 +87,7 @@ class ServiceVendor:
             phone=phone.strip() if phone else None,
             website=website.strip() if website else None,
             whatsapp=whatsapp.strip() if whatsapp else None,
+            city=city.strip() if city else None,
             rating=rating,
             metadata=metadata or {},
             is_active=True,
@@ -97,6 +101,7 @@ class ServiceVendor:
         phone: Optional[str] = None,
         website: Optional[str] = None,
         whatsapp: Optional[str] = None,
+        city: Optional[str] = None,
         rating: Optional[float] = None,
         metadata: Optional[Dict[str, Any]] = None,
         is_active: Optional[bool] = None,
@@ -123,6 +128,9 @@ class ServiceVendor:
         
         if whatsapp is not None:
             self.whatsapp = whatsapp.strip() if whatsapp else None
+        
+        if city is not None:
+            self.city = city.strip() if city else None
         
         if rating is not None:
             if rating < 0 or rating > 5:
