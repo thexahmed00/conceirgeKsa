@@ -38,7 +38,7 @@ class CreatePlanUseCase:
             is_active=is_active,
         )
         
-        saved_plan = await self.plan_repository.create(plan)
+        saved_plan = self.plan_repository.create(plan)
         
         # Parse features back to list for response
         features_list = json.loads(saved_plan.features) if saved_plan.features else []
@@ -75,7 +75,7 @@ class UpdatePlanUseCase:
         is_active: bool = None,
     ) -> PlanDTO:
         """Execute the use case."""
-        plan = await self.plan_repository.find_by_id(plan_id)
+        plan = self.plan_repository.find_by_id(plan_id)
         if not plan:
             raise ResourceNotFoundError(f"Plan {plan_id} not found")
         
@@ -95,7 +95,7 @@ class UpdatePlanUseCase:
         if is_active is not None:
             plan.is_active = is_active
         
-        updated_plan = await self.plan_repository.update(plan)
+        updated_plan = self.plan_repository.update(plan)
         
         # Parse features back to list for response
         features_list = json.loads(updated_plan.features) if updated_plan.features else []
@@ -122,4 +122,4 @@ class DeletePlanUseCase:
 
     async def execute(self, plan_id: int) -> bool:
         """Execute the use case."""
-        return await self.plan_repository.delete(plan_id)
+        return self.plan_repository.delete(plan_id)
