@@ -53,6 +53,13 @@ from src.application.plan.use_cases.plan_use_cases import (
     VerifyPaymentUseCase,
     GetUserSubscriptionUseCase,
 )
+from src.application.content.use_cases.content_use_cases import (
+    ListBannersUseCase,
+    ListCitiesUseCase,
+    CreateBannerUseCase,
+    UpdateBannerUseCase,
+    DeleteBannerUseCase,
+)
 from src.domain.request.repository.request_repository import RequestRepository
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.persistence.database import SessionLocal
@@ -68,6 +75,8 @@ from src.infrastructure.persistence.repositories.booking_repository import Booki
 from src.infrastructure.persistence.repositories.plan.plan_repository import PostgreSQLPlanRepository
 from src.infrastructure.persistence.repositories.plan.subscription_repository import PostgreSQLSubscriptionRepository
 from src.infrastructure.persistence.repositories.notification_repository import PostgreSQLNotificationRepository
+from src.infrastructure.persistence.repositories.banner_repository import PostgreSQLBannerRepository
+from src.infrastructure.persistence.repositories.city_repository import PostgreSQLCityRepository
 from src.infrastructure.auth.jwt_handler import get_user_id_from_token, get_token_claims
 from src.shared.logger.config import get_logger
 from src.application.notification.services.notification_service import NotificationService
@@ -459,3 +468,49 @@ def get_user_subscription_use_case(
 ) -> GetUserSubscriptionUseCase:
     """Provide get user subscription use case."""
     return GetUserSubscriptionUseCase(subscription_repo, plan_repo)
+
+
+# Content/Banner dependencies
+def get_banner_repository(db: Session = Depends(get_db)) -> PostgreSQLBannerRepository:
+    """Provide a banner repository."""
+    return PostgreSQLBannerRepository(db)
+
+
+def get_city_repository(db: Session = Depends(get_db)) -> PostgreSQLCityRepository:
+    """Provide a city repository."""
+    return PostgreSQLCityRepository(db)
+
+
+def get_list_banners_use_case(
+    banner_repo: PostgreSQLBannerRepository = Depends(get_banner_repository),
+) -> ListBannersUseCase:
+    """Provide list banners use case."""
+    return ListBannersUseCase(banner_repo)
+
+
+def get_list_cities_use_case(
+    city_repo: PostgreSQLCityRepository = Depends(get_city_repository),
+) -> ListCitiesUseCase:
+    """Provide list cities use case."""
+    return ListCitiesUseCase(city_repo)
+
+
+def get_create_banner_use_case(
+    banner_repo: PostgreSQLBannerRepository = Depends(get_banner_repository),
+) -> CreateBannerUseCase:
+    """Provide create banner use case."""
+    return CreateBannerUseCase(banner_repo)
+
+
+def get_update_banner_use_case(
+    banner_repo: PostgreSQLBannerRepository = Depends(get_banner_repository),
+) -> UpdateBannerUseCase:
+    """Provide update banner use case."""
+    return UpdateBannerUseCase(banner_repo)
+
+
+def get_delete_banner_use_case(
+    banner_repo: PostgreSQLBannerRepository = Depends(get_banner_repository),
+) -> DeleteBannerUseCase:
+    """Provide delete banner use case."""
+    return DeleteBannerUseCase(banner_repo)
