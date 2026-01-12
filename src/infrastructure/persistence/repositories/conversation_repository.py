@@ -150,6 +150,38 @@ class ConversationRepository:
         )
         return [self._message_to_entity(m) for m in db_messages]
     
+    def count_messages(self, conversation_id: int) -> int:
+        """Count total messages in a conversation."""
+        return (
+            self.db.query(MessageModel)
+            .filter(MessageModel.conversation_id == conversation_id)
+            .count()
+        )
+    
+    def get_messages_paginated(
+        self, conversation_id: int, skip: int = 0, limit: int = 50
+    ) -> tuple[List[Message], int]:
+        """Get paginated messages and total count in a single optimized call."""
+        # Get total count
+        total = (
+            self.db.query(MessageModel)
+            .filter(MessageModel.conversation_id == conversation_id)
+            .count()
+        )
+        
+        # Get paginated messages
+        db_messages = (
+            self.db.query(MessageModel)
+            .filter(MessageModel.conversation_id == conversation_id)
+            .order_by(MessageModel.created_at.asc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        
+        messages = [self._message_to_entity(m) for m in db_messages]
+        return messages, total
+    
     def _to_entity(
         self, model: ConversationModel, messages: List[MessageModel] = None
     ) -> Conversation:

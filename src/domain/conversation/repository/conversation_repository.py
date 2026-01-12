@@ -31,3 +31,10 @@ class ConversationRepository(Protocol):
 
     def get_messages(self, conversation_id: int, skip: int = 0, limit: int = 50) -> List[Message]:
         ...
+
+    def count_messages(self, conversation_id: int) -> int:
+        ...
+
+    def get_messages_paginated(self, conversation_id: int, skip: int = 0, limit: int = 50) -> tuple[List[Message], int]:
+        """Get paginated messages along with total count in a single call."""
+        ...

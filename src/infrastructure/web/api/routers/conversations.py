@@ -6,6 +6,7 @@ from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
     MessageResponseDTO,
     ConversationResponseDTO,
+    ConversationWithPaginatedMessagesDTO,
     ConversationListResponseDTO,
 )
 from src.application.conversation.use_cases.conversation_use_cases import (
@@ -47,14 +48,25 @@ def list_conversations(
     )
 
 
-@router.get("/{conversation_id}", response_model=ConversationResponseDTO)
+@router.get("/{conversation_id}", response_model=ConversationWithPaginatedMessagesDTO)
 def get_conversation(
     conversation_id: int,
+    skip: int = Query(
+        0,
+        ge=0,
+        description="Number of messages to skip when ordered by creation time (oldest first)",
+    ),
+    limit: int = Query(
+        50,
+        ge=1,
+        le=100,
+        description="Maximum number of messages to return after skipping, when ordered by creation time (oldest first)",
+    ),
     user_id: int = Depends(get_current_user),
     use_case: GetConversationUseCase = Depends(get_conversation_use_case),
-) -> ConversationResponseDTO:
-    """Get a conversation with all messages."""
-    return use_case.execute(conversation_id, user_id)
+) -> ConversationWithPaginatedMessagesDTO:
+    """Get a conversation with paginated messages."""
+    return use_case.execute(conversation_id, user_id, skip=skip, limit=limit)
 
 
 @router.post("/{conversation_id}/messages", response_model=MessageResponseDTO, status_code=status.HTTP_201_CREATED)

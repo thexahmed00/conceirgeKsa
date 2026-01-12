@@ -7,18 +7,26 @@ from src.application.conversation.dto.conversation_dto import (
     MessageCreateDTO,
     MessageResponseDTO,
     ConversationResponseDTO,
+    ConversationWithPaginatedMessagesDTO,
     ConversationListItemDTO,
 )
 from src.domain.shared.exceptions import AccessDeniedError, ResourceNotFoundError
 
 
 class GetConversationUseCase:
-    """Get a conversation with all messages."""
+    """Get a conversation with paginated messages."""
     
     def __init__(self, conversation_repo: ConversationRepository):
         self.conversation_repo = conversation_repo
     
-    def execute(self, conversation_id: int, user_id: int, is_admin: bool = False) -> ConversationResponseDTO:
+    def execute(
+        self,
+        conversation_id: int,
+        user_id: int,
+        is_admin: bool = False,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> ConversationWithPaginatedMessagesDTO:
         conversation = self.conversation_repo.find_by_id(conversation_id)
         
         if not conversation:
@@ -28,7 +36,12 @@ class GetConversationUseCase:
         if not is_admin and conversation.user_id != user_id:
             raise AccessDeniedError("You don't have access to this conversation")
         
-        return ConversationResponseDTO(
+        # Get paginated messages and total count in a single optimized call
+        messages, total_messages = self.conversation_repo.get_messages_paginated(
+            conversation_id, skip, limit
+        )
+        
+        return ConversationWithPaginatedMessagesDTO(
             id=conversation.conversation_id,
             request_id=conversation.request_id,
             title=conversation.title,
@@ -47,8 +60,11 @@ class GetConversationUseCase:
                     content=m.content,
                     created_at=m.created_at,
                 )
-                for m in conversation.messages
+                for m in messages
             ],
+            total_messages=total_messages,
+            skip=skip,
+            limit=limit,
         )
 
 

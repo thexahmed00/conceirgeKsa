@@ -64,6 +64,26 @@ class ConversationResponseDTO(BaseModel):
         from_attributes = True
 
 
+class ConversationWithPaginatedMessagesDTO(BaseModel):
+    """Output for conversation with paginated messages."""
+    id: int
+    request_id: int
+    title: Optional[str] = None
+    description: Optional[str] = None
+    user_id: int
+    vendor_id: Optional[int] = None
+    vendor_name: Optional[str] = None
+    vendor_image_url: Optional[str] = None
+    created_at: datetime
+    messages: List[MessageResponseDTO] = []
+    total_messages: int
+    skip: int
+    limit: int
+    
+    class Config:
+        from_attributes = True
+
+
 class ConversationListResponseDTO(BaseModel):
     """Paginated list of conversations."""
     conversations: List[ConversationListItemDTO]
