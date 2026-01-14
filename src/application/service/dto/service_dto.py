@@ -735,7 +735,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200", "caption": "Signature dishes"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1555992336-fb0af0ff2bfc?w=1200", "caption": "Wood-fired pizza oven"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_hotel": {
                 "category_slug": "hotel",
@@ -779,7 +779,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200", "caption": "Deluxe room interior"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200", "caption": "Rooftop infinity pool"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_private_jet": {
                 "category_slug": "private_jet",
@@ -817,7 +817,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-jet-interior.jpg?w=1200", "caption": "Premium seating"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-jet-dining.jpg?w=1200", "caption": "In-flight dining"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_flight": {
                 "category_slug": "flight",
@@ -855,7 +855,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-flight-seat.jpg?w=1200", "caption": "Business class seat"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-flight-meal.jpg?w=1200", "caption": "Premium dining"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_car_rental": {
                 "category_slug": "car_rental",
@@ -883,7 +883,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-dashboard.jpg?w=1200", "caption": "Starlight headliner"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-seats.jpg?w=1200", "caption": "Premium leather seats"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_car_with_driver": {
                 "category_slug": "car_driver",
@@ -918,7 +918,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-dashboard.jpg?w=1200", "caption": "Starlight headliner"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-chauffeur-service.jpg?w=1200", "caption": "Professional chauffeur service"}
                 ],
-                "is_active": true
+                "is_active": True
             },
             "example_boat": {
                 "category_slug": "boat",
@@ -953,7 +953,7 @@ class VendorCreateDTO(BaseModel):
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-yacht-interior.jpg?w=1200", "caption": "Master cabin"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-yacht-dining.jpg?w=1200", "caption": "Dining area"}
                 ],
-                "is_active": true
+                "is_active": True
             }
         }
 
