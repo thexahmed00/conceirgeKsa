@@ -2,15 +2,36 @@
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BookingCreateDTO(BaseModel):
-    request_id: Optional[int] = None
+    """Full booking creation DTO (requires all IDs)."""
+    request_id: int
     vendor_id: Optional[int] = None
     start_at: datetime
     end_at: Optional[datetime] = None
     notes: Optional[str] = None
+
+
+class BookingConfirmDTO(BaseModel):
+    """Simplified DTO for confirming a conversation and creating a booking.
+    
+    Only requires booking times - request_id and vendor_id are resolved 
+    from the conversation automatically.
+    """
+    start_at: datetime = Field(..., description="Booking start date/time")
+    end_at: Optional[datetime] = Field(None, description="Booking end date/time (optional)")
+    notes: Optional[str] = Field(None, description="Additional notes for the booking")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "start_at": "2026-01-20T14:00:00Z",
+                "end_at": "2026-01-20T16:00:00Z",
+                "notes": "VIP guest - arrange airport pickup"
+            }
+        }
 
 
 class BookingResponseDTO(BaseModel):
