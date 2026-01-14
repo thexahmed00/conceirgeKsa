@@ -408,6 +408,16 @@ class VendorCreateDTO(BaseModel):
         description="Type-specific data (hours, dishes, rooms, etc.)"
     )
     
+    # Images (optional - can add images during creation)
+    hero_images: Optional[List[ImageCreateDTO]] = Field(
+        default_factory=list,
+        description="Hero images for carousel"
+    )
+    gallery_images: Optional[List[ImageCreateDTO]] = Field(
+        default_factory=list,
+        description="Gallery images"
+    )
+    
     # Activation status
     is_active: bool = Field(True, description="Whether vendor is visible to users")
     
@@ -450,7 +460,16 @@ class VendorCreateDTO(BaseModel):
                             ]
                         }
                     ]
-                }
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200", "thumbnail_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400", "caption": "Restaurant exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200", "thumbnail_url": "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400", "caption": "Elegant dining area"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200", "caption": "Signature dishes"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1555992336-fb0af0ff2bfc?w=1200", "caption": "Wood-fired pizza oven"}
+                ],
+                "is_active": true
             },
             "example_hotel": {
                 "category_slug": "hotel",
@@ -485,7 +504,16 @@ class VendorCreateDTO(BaseModel):
                         {"name": "Executive Suite", "price": "1200 SAR/night", "image": "https://images.unsplash.com/photo-suite.jpg", "capacity": "2 Adults, 1 Child"},
                         {"name": "Royal Suite", "price": "3500 SAR/night", "image": "https://images.unsplash.com/photo-royal.jpg", "capacity": "4 Adults"}
                     ]
-                }
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200", "caption": "Hotel exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200", "caption": "Luxury lobby"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200", "caption": "Deluxe room interior"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200", "caption": "Rooftop infinity pool"}
+                ],
+                "is_active": true
             }
         }
 
@@ -501,6 +529,14 @@ class VendorUpdateDTO(BaseModel):
     whatsapp: Optional[str] = Field(None, max_length=50)
     rating: Optional[float] = Field(None, ge=0, le=5)
     metadata: Optional[Dict[str, Any]] = None
+    hero_images: Optional[List[ImageCreateDTO]] = Field(
+        None,
+        description="Replace all hero images (if provided)"
+    )
+    gallery_images: Optional[List[ImageCreateDTO]] = Field(
+        None,
+        description="Replace all gallery images (if provided)"
+    )
     is_active: Optional[bool] = None
     
     class Config:

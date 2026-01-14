@@ -1,6 +1,7 @@
 """Admin vendor use cases - CRUD operations."""
 
 from src.domain.service.entities.service_vendor import ServiceVendor
+from src.domain.service.entities.vendor_image import VendorImage
 from src.domain.service.repository.service_category_repository import ServiceCategoryRepository
 from src.domain.service.repository.service_vendor_repository import ServiceVendorRepository
 from src.domain.service.repository.vendor_image_repository import VendorImageRepository
@@ -54,6 +55,50 @@ class CreateVendorUseCase:
         # Save vendor
         saved_vendor = self.vendor_repo.save(vendor)
         
+        # Add images if provided
+        hero_images = []
+        gallery_images = []
+        
+        if dto.hero_images:
+            for idx, img_dto in enumerate(dto.hero_images):
+                image = VendorImage.create(
+                    vendor_id=saved_vendor.vendor_id,
+                    image_type="hero",
+                    image_url=img_dto.image_url,
+                    thumbnail_url=img_dto.thumbnail_url,
+                    caption=img_dto.caption,
+                    display_order=idx,
+                )
+                saved_image = self.image_repo.save(image)
+                hero_images.append(VendorImageDTO(
+                    id=saved_image.image_id,
+                    image_type=saved_image.image_type,
+                    url=saved_image.image_url,
+                    thumbnail_url=saved_image.thumbnail_url,
+                    caption=saved_image.caption,
+                    display_order=saved_image.display_order,
+                ))
+        
+        if dto.gallery_images:
+            for idx, img_dto in enumerate(dto.gallery_images):
+                image = VendorImage.create(
+                    vendor_id=saved_vendor.vendor_id,
+                    image_type="gallery",
+                    image_url=img_dto.image_url,
+                    thumbnail_url=img_dto.thumbnail_url,
+                    caption=img_dto.caption,
+                    display_order=idx,
+                )
+                saved_image = self.image_repo.save(image)
+                gallery_images.append(VendorImageDTO(
+                    id=saved_image.image_id,
+                    image_type=saved_image.image_type,
+                    url=saved_image.image_url,
+                    thumbnail_url=saved_image.thumbnail_url,
+                    caption=saved_image.caption,
+                    display_order=saved_image.display_order,
+                ))
+        
         return VendorDetailDTO(
             id=saved_vendor.vendor_id,
             category_id=saved_vendor.category_id,
@@ -67,8 +112,8 @@ class CreateVendorUseCase:
             website=saved_vendor.website,
             whatsapp=saved_vendor.whatsapp,
             rating=saved_vendor.rating,
-            hero_images=[],
-            gallery_images=[],
+            hero_images=hero_images,
+            gallery_images=gallery_images,
             metadata=saved_vendor.metadata,
             is_active=saved_vendor.is_active,
             created_at=saved_vendor.created_at,
@@ -111,7 +156,44 @@ class UpdateVendorUseCase:
         # Save updates
         updated_vendor = self.vendor_repo.update(vendor)
         
-        # Get images
+        # Update images if provided
+        if dto.hero_images is not None:
+            # Delete existing hero images
+            existing_hero = self.image_repo.find_hero_images(vendor_id)
+            for img in existing_hero:
+                self.image_repo.delete(img.image_id)
+            
+            # Add new hero images
+            for idx, img_dto in enumerate(dto.hero_images):
+                image = VendorImage.create(
+                    vendor_id=vendor_id,
+                    image_type="hero",
+                    image_url=img_dto.image_url,
+                    thumbnail_url=img_dto.thumbnail_url,
+                    caption=img_dto.caption,
+                    display_order=idx,
+                )
+                self.image_repo.save(image)
+        
+        if dto.gallery_images is not None:
+            # Delete existing gallery images
+            existing_gallery = self.image_repo.find_gallery_images(vendor_id)
+            for img in existing_gallery:
+                self.image_repo.delete(img.image_id)
+            
+            # Add new gallery images
+            for idx, img_dto in enumerate(dto.gallery_images):
+                image = VendorImage.create(
+                    vendor_id=vendor_id,
+                    image_type="gallery",
+                    image_url=img_dto.image_url,
+                    thumbnail_url=img_dto.thumbnail_url,
+                    caption=img_dto.caption,
+                    display_order=idx,
+                )
+                self.image_repo.save(image)
+        
+        # Get final images
         hero_images = self.image_repo.find_hero_images(vendor_id)
         gallery_images = self.image_repo.find_gallery_images(vendor_id)
         

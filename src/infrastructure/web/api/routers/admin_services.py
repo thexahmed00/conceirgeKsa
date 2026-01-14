@@ -74,22 +74,25 @@ def create_vendor(
 
 @router.get("/vendors", response_model=VendorListResponseDTO)
 def list_all_vendors(
-    category_slug: str = Query(None, description="Filter by category slug"),
+    category_slug: str = Query(None, description="Optional: Filter by category slug"),
+    city: str = Query(None, description="Optional: Filter by city"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     admin_id: int = Depends(get_current_admin_user),
     use_case: ListVendorsByCategoryUseCase = Depends(get_list_vendors_by_category_use_case),
 ) -> VendorListResponseDTO:
     """
-    List vendors (admin view).
+    List all vendors (admin view).
     
-    Optionally filter by category slug. Includes inactive vendors.
+    Optionally filter by category slug and/or city. 
+    Shows all vendors including inactive ones.
     """
-    if category_slug:
-        return use_case.execute(category_slug=category_slug, skip=skip, limit=limit)
-    # If no category specified, we need a different use case
-    # For now, require category_slug
-    return VendorListResponseDTO(vendors=[], total=0, skip=skip, limit=limit)
+    return use_case.execute(
+        category_slug=category_slug,
+        skip=skip,
+        limit=limit,
+        city=city,
+    )
 
 
 @router.get("/vendors/{vendor_id}", response_model=VendorDetailDTO)
