@@ -204,6 +204,272 @@ class HotelMetadataDTO(BaseModel):
 
 
 # =============================================================================
+# Private Jet Metadata DTOs
+# =============================================================================
+
+class JetTypeDTO(BaseModel):
+    """Aircraft type available for charter."""
+    name: str = Field(..., description="Aircraft model name (e.g., 'Cessna Citation X', 'Gulfstream G650')")
+    image: Optional[str] = Field(None, description="Aircraft image URL")
+    capacity: Optional[str] = Field(None, description="Passenger capacity (e.g., '8-12 passengers')")
+    range: Optional[str] = Field(None, description="Flight range (e.g., '6,000 nm')")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Gulfstream G650",
+                "image": "https://images.unsplash.com/photo-jet.jpg",
+                "capacity": "8-12 passengers",
+                "range": "7,000 nm"
+            }
+        }
+
+
+class PopularRouteDTO(BaseModel):
+    """Popular flight route."""
+    origin: str = Field(..., description="Origin city")
+    destination: str = Field(..., description="Destination city")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "origin": "Riyadh",
+                "destination": "London"
+            }
+        }
+
+
+class PrivateJetMetadataDTO(BaseModel):
+    """Structured metadata for private jet vendors."""
+    hours: List[OperatingHoursDTO] = Field(
+        default_factory=list,
+        description="Operating hours / support availability"
+    )
+    languages: List[str] = Field(
+        default_factory=list,
+        description="Languages supported (e.g., ['English', 'Arabic', 'French'])"
+    )
+    service_area: List[str] = Field(
+        default_factory=list,
+        description="Service coverage (e.g., ['Domestic', 'International routes'])"
+    )
+    jet_types: List[JetTypeDTO] = Field(
+        default_factory=list,
+        description="Available aircraft types"
+    )
+    popular_routes: List[PopularRouteDTO] = Field(
+        default_factory=list,
+        description="Popular flight routes"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "hours": [
+                    {"name": "Open Hours", "time": "24/7 Concierge Support"}
+                ],
+                "languages": ["English", "Arabic", "French"],
+                "service_area": ["Domestic", "International routes"],
+                "jet_types": [
+                    {"name": "Cessna Citation XLS+", "image": "https://...", "capacity": "8 passengers", "range": "2,100 nm"},
+                    {"name": "Gulfstream G650", "image": "https://...", "capacity": "12 passengers", "range": "7,000 nm"},
+                    {"name": "Bombardier Global 500", "image": "https://...", "capacity": "10 passengers", "range": "5,700 nm"}
+                ],
+                "popular_routes": [
+                    {"origin": "Dubai", "destination": "Paris"},
+                    {"origin": "Riyadh", "destination": "London"},
+                    {"origin": "Los Angeles", "destination": "New York"},
+                    {"origin": "Rome", "destination": "Mykonos"}
+                ]
+            }
+        }
+
+
+# =============================================================================
+# Flight (Commercial) Metadata DTOs
+# =============================================================================
+
+class SeatTypeDTO(BaseModel):
+    """Seat class available on flight."""
+    name: str = Field(..., description="Seat class name (e.g., 'Economy', 'Business Class', 'First Class')")
+    image: Optional[str] = Field(None, description="Seat class image URL")
+    description: Optional[str] = Field(None, description="Description of amenities")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Business Class",
+                "image": "https://images.unsplash.com/photo-business-seat.jpg",
+                "description": "Lie-flat seats with premium dining"
+            }
+        }
+
+
+class FlightMetadataDTO(BaseModel):
+    """Structured metadata for flight/airline vendors."""
+    hours: List[OperatingHoursDTO] = Field(
+        default_factory=list,
+        description="Operating hours / support availability"
+    )
+    languages: List[str] = Field(
+        default_factory=list,
+        description="Languages supported"
+    )
+    service_area: List[str] = Field(
+        default_factory=list,
+        description="Service coverage (e.g., ['Domestic', 'International routes'])"
+    )
+    seat_types: List[SeatTypeDTO] = Field(
+        default_factory=list,
+        description="Available seat classes"
+    )
+    popular_routes: List[PopularRouteDTO] = Field(
+        default_factory=list,
+        description="Popular flight routes"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "hours": [
+                    {"name": "Open Hours", "time": "24/7 Concierge Support"}
+                ],
+                "languages": ["English", "Arabic", "French"],
+                "service_area": ["Domestic", "International routes"],
+                "seat_types": [
+                    {"name": "Economy", "image": "https://...", "description": "Standard seating with entertainment"},
+                    {"name": "Business Class", "image": "https://...", "description": "Lie-flat seats with premium dining"},
+                    {"name": "First Class", "image": "https://...", "description": "Private suites with exclusive amenities"}
+                ],
+                "popular_routes": [
+                    {"origin": "Dubai", "destination": "Paris"},
+                    {"origin": "Riyadh", "destination": "London"},
+                    {"origin": "Los Angeles", "destination": "New York"},
+                    {"origin": "Rome", "destination": "Mykonos"}
+                ]
+            }
+        }
+
+
+# =============================================================================
+# Car Rental & Car with Driver Metadata DTOs
+# =============================================================================
+
+class CarBasicDTO(BaseModel):
+    """Basic car specifications."""
+    doors: Optional[str] = Field(None, description="Number of doors (e.g., '2 Doors', '4 Doors')")
+    seats: Optional[str] = Field(None, description="Number of seats (e.g., '4 Seats', '7 Seats')")
+    fuel_type: Optional[str] = Field(None, description="Fuel type (e.g., 'Gas', 'Electric', 'Hybrid')")
+    transmission: Optional[str] = Field(None, description="Transmission type (e.g., 'Automatic', 'Manual')")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "doors": "2 Doors",
+                "seats": "4 Seats",
+                "fuel_type": "Gas",
+                "transmission": "Automatic"
+            }
+        }
+
+
+class ChauffeurDTO(BaseModel):
+    """Chauffeur information for car with driver service."""
+    name: str = Field(..., description="Chauffeur name")
+    contact: Optional[str] = Field(None, description="Contact method (e.g., 'Message Khaled')")
+    image: Optional[str] = Field(None, description="Chauffeur photo URL")
+    languages: List[str] = Field(default_factory=list, description="Languages spoken")
+    experience: Optional[str] = Field(None, description="Years of experience")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Khaled Hunter",
+                "contact": "Message Khaled",
+                "image": "https://images.unsplash.com/photo-chauffeur.jpg",
+                "languages": ["Arabic", "English"],
+                "experience": "10+ years"
+            }
+        }
+
+
+class CarMetadataDTO(BaseModel):
+    """Structured metadata for car rental vendors."""
+    car_basic: Optional[CarBasicDTO] = Field(None, description="Basic car specifications")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "car_basic": {
+                    "doors": "2 Doors",
+                    "seats": "4 Seats",
+                    "fuel_type": "Gas",
+                    "transmission": "Automatic"
+                }
+            }
+        }
+
+
+class CarWithDriverMetadataDTO(BaseModel):
+    """Structured metadata for car with driver vendors."""
+    car_basic: Optional[CarBasicDTO] = Field(None, description="Basic car specifications")
+    chauffeur: Optional[ChauffeurDTO] = Field(None, description="Chauffeur information")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "car_basic": {
+                    "doors": "2 Doors",
+                    "seats": "4 Seats",
+                    "fuel_type": "Gas",
+                    "transmission": "Automatic"
+                },
+                "chauffeur": {
+                    "name": "Khaled Hunter",
+                    "contact": "Message Khaled",
+                    "image": "https://...",
+                    "languages": ["Arabic", "English"],
+                    "experience": "10+ years"
+                }
+            }
+        }
+
+
+# =============================================================================
+# Boat/Yacht Metadata DTOs
+# =============================================================================
+
+class BoatMetadataDTO(BaseModel):
+    """Structured metadata for boat/yacht vendors."""
+    crew: Optional[str] = Field(None, description="Crew info (e.g., 'Dedicated Captain & Hostess/Deckhand')")
+    guests: Optional[str] = Field(None, description="Guest capacity (e.g., 'Up to 10 for cruising, 6 for overnight charters')")
+    cabins: Optional[str] = Field(None, description="Cabin info (e.g., '3 En-Suite (Master, VIP, Twin)')")
+    amenities: List[AmenityDTO] = Field(
+        default_factory=list,
+        description="Boat amenities and dedicated services"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "crew": "Dedicated Captain & Hostess/Deckhand",
+                "guests": "Up to 10 for cruising, 6 for overnight charters",
+                "cabins": "3 En-Suite (Master, VIP, Twin)",
+                "amenities": [
+                    {"name": "Dedicated workspace", "icon": "workspace"},
+                    {"name": "Hot water", "icon": "hot_water"},
+                    {"name": "Kitchen", "icon": "kitchen"},
+                    {"name": "TV", "icon": "tv"},
+                    {"name": "Air conditioning", "icon": "ac"},
+                    {"name": "Microwave", "icon": "microwave"},
+                    {"name": "WiFi", "icon": "wifi"},
+                    {"name": "Refrigerator", "icon": "refrigerator"}
+                ]
+            }
+        }
+
+
+# =============================================================================
 # Service Category DTOs
 # =============================================================================
 
@@ -512,6 +778,180 @@ class VendorCreateDTO(BaseModel):
                 "gallery_images": [
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200", "caption": "Deluxe room interior"},
                     {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200", "caption": "Rooftop infinity pool"}
+                ],
+                "is_active": true
+            },
+            "example_private_jet": {
+                "category_slug": "private_jet",
+                "name": "SkyLux Private Jets",
+                "description": "SkyLux Private Jets offers luxury air travel for business executives, celebrities, and elite travelers. Choose from a premium fleet of private aircraft, with full concierge support—from personalized meals to airport transfers and in-flight entertainment.",
+                "city": "Riyadh",
+                "address": "VIP Terminal, City International Airport",
+                "phone": "+123 999 000",
+                "website": "www.SkyLux.com",
+                "whatsapp": "+123 999 000",
+                "rating": 5.0,
+                "metadata": {
+                    "hours": [
+                        {"name": "Open Hours", "time": "24/7 Concierge Support"}
+                    ],
+                    "languages": ["English", "Arabic", "French"],
+                    "service_area": ["Domestic", "International routes"],
+                    "jet_types": [
+                        {"name": "Cessna Citation XLS+", "image": "https://images.unsplash.com/photo-cessna.jpg", "capacity": "8 passengers", "range": "2,100 nm"},
+                        {"name": "Gulfstream G650", "image": "https://images.unsplash.com/photo-gulfstream.jpg", "capacity": "12 passengers", "range": "7,000 nm"},
+                        {"name": "Bombardier Global 500", "image": "https://images.unsplash.com/photo-bombardier.jpg", "capacity": "10 passengers", "range": "5,700 nm"}
+                    ],
+                    "popular_routes": [
+                        {"origin": "Dubai", "destination": "Paris"},
+                        {"origin": "Riyadh", "destination": "London"},
+                        {"origin": "Los Angeles", "destination": "New York"},
+                        {"origin": "Rome", "destination": "Mykonos"}
+                    ]
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1200", "caption": "Private jet exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1200", "caption": "Luxury cabin interior"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-jet-interior.jpg?w=1200", "caption": "Premium seating"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-jet-dining.jpg?w=1200", "caption": "In-flight dining"}
+                ],
+                "is_active": true
+            },
+            "example_flight": {
+                "category_slug": "flight",
+                "name": "Saudi Flight Airways",
+                "description": "Saudi Flight Airways offers luxury air travel for business executives, celebrities, and elite travelers. Choose from a premium fleet of private aircraft, with full concierge support—from personalized meals to airport transfers and in-flight entertainment.",
+                "city": "Riyadh",
+                "address": "VIP Terminal, City International Airport",
+                "phone": "+123 999 000",
+                "website": "www.SkyLux.com",
+                "whatsapp": "+123 999 000",
+                "rating": 5.0,
+                "metadata": {
+                    "hours": [
+                        {"name": "Open Hours", "time": "24/7 Concierge Support"}
+                    ],
+                    "languages": ["English", "Arabic", "French"],
+                    "service_area": ["Domestic", "International routes"],
+                    "seat_types": [
+                        {"name": "Economy", "image": "https://images.unsplash.com/photo-economy.jpg", "description": "Standard seating with entertainment"},
+                        {"name": "Business Class", "image": "https://images.unsplash.com/photo-business.jpg", "description": "Lie-flat seats with premium dining"},
+                        {"name": "First Class", "image": "https://images.unsplash.com/photo-firstclass.jpg", "description": "Private suites with exclusive amenities"}
+                    ],
+                    "popular_routes": [
+                        {"origin": "Dubai", "destination": "Paris"},
+                        {"origin": "Riyadh", "destination": "London"},
+                        {"origin": "Los Angeles", "destination": "New York"},
+                        {"origin": "Rome", "destination": "Mykonos"}
+                    ]
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200", "caption": "Aircraft exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1540339832862-474599807836?w=1200", "caption": "First class cabin"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-flight-seat.jpg?w=1200", "caption": "Business class seat"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-flight-meal.jpg?w=1200", "caption": "Premium dining"}
+                ],
+                "is_active": true
+            },
+            "example_car_rental": {
+                "category_slug": "car_rental",
+                "name": "2024 Rolls-Royce Ghost",
+                "description": "The Rolls-Royce Ghost is not merely a car; it is a sanctuary. Engineered around a philosophy of 'post-opulence', it offers a profoundly quiet and effortless driving experience. For the discerning client who values understated power and peerless comfort over ostentation, the Ghost is the ultimate choice for executive travel, a special anniversary, or simply indulging in the finest automotive experience in the world.",
+                "city": "Riyadh",
+                "address": "Al Faisaliyah District, Riyadh",
+                "phone": "+966 11 123 4567",
+                "website": "www.luxurycars.sa",
+                "whatsapp": "+966 11 123 4567",
+                "rating": 5.0,
+                "metadata": {
+                    "car_basic": {
+                        "doors": "2 Doors",
+                        "seats": "4 Seats",
+                        "fuel_type": "Gas",
+                        "transmission": "Automatic"
+                    }
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-rolls-royce.jpg?w=1200", "caption": "Rolls-Royce Ghost exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-rr-interior.jpg?w=1200", "caption": "Luxury interior"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-dashboard.jpg?w=1200", "caption": "Starlight headliner"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-seats.jpg?w=1200", "caption": "Premium leather seats"}
+                ],
+                "is_active": true
+            },
+            "example_car_with_driver": {
+                "category_slug": "car_driver",
+                "name": "2024 Rolls-Royce Ghost with Chauffeur",
+                "description": "The Rolls-Royce Ghost is not merely a car; it is a sanctuary. Engineered around a philosophy of 'post-opulence', it offers a profoundly quiet and effortless driving experience. For the discerning client who values understated power and peerless comfort over ostentation, the Ghost is the ultimate choice for executive travel, a special anniversary, or simply indulging in the finest automotive experience in the world.",
+                "city": "Riyadh",
+                "address": "Al Faisaliyah District, Riyadh",
+                "phone": "+966 11 123 4567",
+                "website": "www.luxurycars.sa",
+                "whatsapp": "+966 11 123 4567",
+                "rating": 5.0,
+                "metadata": {
+                    "car_basic": {
+                        "doors": "2 Doors",
+                        "seats": "4 Seats",
+                        "fuel_type": "Gas",
+                        "transmission": "Automatic"
+                    },
+                    "chauffeur": {
+                        "name": "Khaled Hunter",
+                        "contact": "Message Khaled",
+                        "image": "https://images.unsplash.com/photo-chauffeur.jpg",
+                        "languages": ["Arabic", "English"],
+                        "experience": "10+ years"
+                    }
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-rolls-royce.jpg?w=1200", "caption": "Rolls-Royce Ghost exterior"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-rr-interior.jpg?w=1200", "caption": "Luxury interior"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-rr-dashboard.jpg?w=1200", "caption": "Starlight headliner"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-chauffeur-service.jpg?w=1200", "caption": "Professional chauffeur service"}
+                ],
+                "is_active": true
+            },
+            "example_boat": {
+                "category_slug": "boat",
+                "name": "Serenity - 62ft Sunseeker Predator",
+                "description": "'Serenity' is not just a yacht; it is a statement. This 62-foot Sunseeker Predator masterfully blends breathtaking performance with uncompromising luxury. Designed for the discerning guest who demands both exhilaration and relaxation, its sleek lines and powerful presence are matched only by its exceptionally spacious and elegant interior. Ideal for intimate celebrations, corporate entertaining, or a sublime day exploring the coastline in absolute style.",
+                "city": "Jeddah",
+                "address": "Marina Bay, Jeddah",
+                "phone": "+966 12 345 6789",
+                "website": "www.luxuryyachts.sa",
+                "whatsapp": "+966 12 345 6789",
+                "rating": 5.0,
+                "metadata": {
+                    "crew": "Dedicated Captain & Hostess/Deckhand",
+                    "guests": "Up to 10 for cruising, 6 for overnight charters",
+                    "cabins": "3 En-Suite (Master, VIP, Twin)",
+                    "amenities": [
+                        {"name": "Dedicated workspace", "icon": "workspace"},
+                        {"name": "Hot water", "icon": "hot_water"},
+                        {"name": "Kitchen", "icon": "kitchen"},
+                        {"name": "TV", "icon": "tv"},
+                        {"name": "Air conditioning", "icon": "ac"},
+                        {"name": "Microwave", "icon": "microwave"},
+                        {"name": "WiFi", "icon": "wifi"},
+                        {"name": "Refrigerator", "icon": "refrigerator"}
+                    ]
+                },
+                "hero_images": [
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200", "caption": "Yacht at sea"},
+                    {"image_type": "hero", "image_url": "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?w=1200", "caption": "Deck view"}
+                ],
+                "gallery_images": [
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-yacht-interior.jpg?w=1200", "caption": "Master cabin"},
+                    {"image_type": "gallery", "image_url": "https://images.unsplash.com/photo-yacht-dining.jpg?w=1200", "caption": "Dining area"}
                 ],
                 "is_active": true
             }
