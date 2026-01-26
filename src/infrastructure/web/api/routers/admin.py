@@ -11,13 +11,13 @@ from src.application.conversation.dto.conversation_dto import (
     ConversationResponseDTO,
     AdminConversationListResponseDTO,
 )
-from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingConfirmDTO, BookingResponseDTO, BookingListResponseDTO, BookingStatusUpdateDTO
+from src.application.booking.dto.booking_dto import BookingCreateDTO, BookingConfirmDTO, BookingResponseDTO, BookingListResponseDTO, BookingStatusUpdateDTO, AdminBookingDetailDTO
 from src.application.conversation.use_cases.conversation_use_cases import (
     GetConversationUseCase,
     SendMessageUseCase,
     ListAllConversationsUseCase,
 )
-from src.application.booking.use_cases.booking_use_cases import ListAllBookingsUseCase, UpdateBookingStatusUseCase
+from src.application.booking.use_cases.booking_use_cases import ListAllBookingsUseCase, UpdateBookingStatusUseCase, GetBookingDetailUseCase
 from src.domain.user.repository.user_repository import UserRepository
 from src.infrastructure.web.dependencies import (
     get_conversation_use_case,
@@ -29,6 +29,7 @@ from src.infrastructure.web.dependencies import (
     get_list_all_conversations_use_case,
     get_list_all_bookings_use_case,
     get_update_booking_status_use_case,
+    get_booking_detail_use_case,
 )
 from src.infrastructure.web.dependencies import get_conversation_repository
 from src.shared.logger.config import get_logger
@@ -110,6 +111,29 @@ def list_all_bookings(
     """Admin-only: list bookings across all users."""
     result = use_case.execute(status=status, skip=skip, limit=limit)
     logger.info(f"Admin {admin_id} listed bookings: skip={skip} limit={limit} status={status} total={result.total}")
+    return result
+
+
+@router.get("/bookings/{booking_id}", response_model=AdminBookingDetailDTO)
+def get_booking_detail(
+    booking_id: int,
+    admin_id: int = Depends(get_admin_user),
+    use_case: GetBookingDetailUseCase = Depends(get_booking_detail_use_case),
+) -> AdminBookingDetailDTO:
+    """
+    Admin-only: Get comprehensive booking details with full tracking.
+    
+    Returns end-to-end view including:
+    - **Booking**: status, times, notes, who created it
+    - **User**: customer info (name, email, phone)
+    - **Vendor**: service provider details with hero image
+    - **Request**: original request with tracking status (new → assigned → in_progress → fulfilled)
+    - **Conversation**: full message history between user and admin
+    
+    Use this to see the complete journey of a booking from request to fulfillment.
+    """
+    result = use_case.execute(booking_id)
+    logger.info(f"Admin {admin_id} viewed booking detail: id={booking_id}")
     return result
 
 

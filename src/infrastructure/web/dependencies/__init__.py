@@ -31,6 +31,7 @@ from src.infrastructure.web.dependencies.injection import (
 	get_list_user_bookings_use_case,
 	get_list_all_bookings_use_case,
 	get_update_booking_status_use_case,
+	get_booking_detail_use_case,
 	get_create_vendor_use_case,
 	get_update_vendor_use_case,
 	get_delete_vendor_use_case,
@@ -93,6 +94,7 @@ __all__ = [
 	"get_create_booking_use_case",
 	"get_list_user_bookings_use_case",
 	"get_list_all_bookings_use_case",
+	"get_booking_detail_use_case",
 	# Plan exports
 	"get_plan_repository",
 	"get_subscription_repository",

@@ -287,3 +287,132 @@ class UpdateBookingStatusUseCase:
             notes=updated_booking.notes,
             created_at=updated_booking.created_at,
         )
+
+
+class GetBookingDetailUseCase:
+    """
+    Admin use case to get comprehensive booking details.
+    Returns full end-to-end tracking: booking → request → user → vendor → conversation.
+    """
+
+    def __init__(
+        self,
+        booking_repo: BookingRepository,
+        request_repo: RequestRepository,
+        vendor_repo: ServiceVendorRepository,
+        image_repo: VendorImageRepository,
+        user_repo,
+        conversation_repo,
+    ):
+        self.booking_repo = booking_repo
+        self.request_repo = request_repo
+        self.vendor_repo = vendor_repo
+        self.image_repo = image_repo
+        self.user_repo = user_repo
+        self.conversation_repo = conversation_repo
+
+    def _format_dt(self, dt):
+        if not dt:
+            return None
+        try:
+            return dt.strftime("%d %b %Y, %I:%M %p")
+        except Exception:
+            return None
+
+    def execute(self, booking_id: int) -> "AdminBookingDetailDTO":
+        from src.application.booking.dto.booking_dto import (
+            AdminBookingDetailDTO,
+            UserSummaryDTO,
+            VendorSummaryDTO,
+            RequestSummaryDTO,
+            ConversationSummaryDTO,
+            MessageSummaryDTO,
+        )
+
+        # 1. Get booking
+        booking = self.booking_repo.find_by_id(booking_id)
+        if not booking:
+            raise ResourceNotFoundError(f"Booking {booking_id} not found")
+
+        # 2. Get request
+        request = self.request_repo.find_by_id(booking.request_id)
+        if not request:
+            raise ResourceNotFoundError(f"Request {booking.request_id} not found")
+
+        request_dto = RequestSummaryDTO(
+            id=request.request_id,
+            title=request.title,
+            category_slug=request.category_slug,
+            description=request.description,
+            status=request.status,
+            created_at=request.created_at,
+            updated_at=request.updated_at,
+        )
+
+        # 3. Get user
+        user = self.user_repo.find_by_id(booking.user_id)
+        if not user:
+            raise ResourceNotFoundError(f"User {booking.user_id} not found")
+
+        user_dto = UserSummaryDTO(
+            id=user.user_id,
+            email=user.email,
+            full_name=f"{user.first_name} {user.last_name}",
+            phone_number=user.phone_number,
+        )
+
+        # 4. Get vendor (optional)
+        vendor_dto = None
+        if booking.vendor_id:
+            vendor = self.vendor_repo.find_by_id(booking.vendor_id)
+            if vendor:
+                # Get hero image
+                thumb = self.image_repo.find_first_hero_image(booking.vendor_id)
+                hero_url = thumb.image_url if thumb else None
+                vendor_dto = VendorSummaryDTO(
+                    id=vendor.vendor_id,
+                    name=vendor.name,
+                    category_slug=vendor.category_slug,
+                    address=vendor.address,
+                    phone=vendor.phone,
+                    hero_url=hero_url,
+                )
+
+        # 5. Get conversation with messages
+        conversation_dto = None
+        conversation = self.conversation_repo.find_by_request_id(booking.request_id)
+        if conversation:
+            messages_dto = [
+                MessageSummaryDTO(
+                    id=m.message_id,
+                    sender_id=m.sender_id,
+                    sender_type=m.sender_type,
+                    content=m.content,
+                    created_at=m.created_at,
+                )
+                for m in conversation.messages
+            ]
+            conversation_dto = ConversationSummaryDTO(
+                id=conversation.conversation_id,
+                message_count=len(messages_dto),
+                messages=messages_dto,
+                created_at=conversation.created_at,
+            )
+
+        # 6. Build full response
+        return AdminBookingDetailDTO(
+            id=booking.booking_id,
+            status=booking.status,
+            start_at=booking.start_at,
+            end_at=booking.end_at,
+            start_at_formatted=self._format_dt(booking.start_at),
+            end_at_formatted=self._format_dt(booking.end_at),
+            notes=booking.notes,
+            created_at=booking.created_at,
+            created_by=booking.created_by,
+            user=user_dto,
+            vendor=vendor_dto,
+            request=request_dto,
+            conversation=conversation_dto,
+        )
+
