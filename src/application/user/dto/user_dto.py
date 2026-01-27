@@ -4,7 +4,7 @@ These are separate from domain entities. They handle serialization/deserializati
 and API request/response formatting.
 """
 
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
@@ -92,6 +92,62 @@ class UserUpdateRequest(BaseModel):
                 "phone_number": "+966501234567",
                 "first_name": "John",
                 "last_name": "Doe",
+            }
+        }
+
+
+class AdminUserUpdateRequest(BaseModel):
+    """Request DTO for admin to update user (can change admin status)."""
+    
+    first_name: Optional[str] = Field(None, min_length=1, description="First name")
+    last_name: Optional[str] = Field(None, min_length=1, description="Last name")
+    phone_number: Optional[str] = Field(None, description="Phone number")
+    tier: Optional[int] = Field(None, ge=5000, description="User tier")
+    is_active: Optional[bool] = Field(None, description="Whether user is active")
+    is_admin: Optional[bool] = Field(None, description="Whether user is an admin")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "phone_number": "+966501234567",
+                "tier": 25000,
+                "is_active": True,
+                "is_admin": False,
+            }
+        }
+
+
+class UserListResponse(BaseModel):
+    """Response DTO for list of users with pagination."""
+    
+    items: List[UserResponse] = Field(..., description="List of users")
+    total: int = Field(..., description="Total number of users")
+    skip: int = Field(..., description="Number of records skipped")
+    limit: int = Field(..., description="Maximum records returned")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "items": [
+                    {
+                        "id": 1,
+                        "email": "john.doe@example.com",
+                        "first_name": "John",
+                        "last_name": "Doe",
+                        "full_name": "John Doe",
+                        "phone_number": "+966501234567",
+                        "tier": 5000,
+                        "is_active": True,
+                        "is_admin": False,
+                        "created_at": "2024-01-01T12:00:00Z",
+                        "updated_at": "2024-01-15T15:30:00Z",
+                    }
+                ],
+                "total": 50,
+                "skip": 0,
+                "limit": 20,
             }
         }
 

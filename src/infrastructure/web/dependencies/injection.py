@@ -9,6 +9,11 @@ from src.application.user.use_cases.user_use_cases import (
     AuthenticateUserUseCase,
     CreateUserUseCase,
     GetUserUseCase,
+    ListAllUsersUseCase,
+    GetUserByIdUseCase,
+    UpdateUserUseCase,
+    DeleteUserUseCase,
+    CreateAdminUserUseCase,
 )
 from src.application.request.use_cases.request_use_cases import (
     GetRequestUseCase,
@@ -121,6 +126,41 @@ def get_user_use_case(
     user_repository: UserRepository = Depends(get_user_repository),
 ) -> GetUserUseCase:
     return GetUserUseCase(user_repository)
+
+
+def get_list_all_users_use_case(
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> ListAllUsersUseCase:
+    """Provide use case for listing all users (admin)."""
+    return ListAllUsersUseCase(user_repository)
+
+
+def get_user_by_id_use_case(
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> GetUserByIdUseCase:
+    """Provide use case for getting a specific user by ID (admin)."""
+    return GetUserByIdUseCase(user_repository)
+
+
+def get_update_user_use_case(
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> UpdateUserUseCase:
+    """Provide use case for updating a user (admin)."""
+    return UpdateUserUseCase(user_repository)
+
+
+def get_delete_user_use_case(
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> DeleteUserUseCase:
+    """Provide use case for deleting a user (admin)."""
+    return DeleteUserUseCase(user_repository)
+
+
+def get_create_admin_user_use_case(
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> CreateAdminUserUseCase:
+    """Provide use case for creating a user with optional admin privileges (admin)."""
+    return CreateAdminUserUseCase(user_repository)
 
 
 def get_request_repository(db: Session = Depends(get_db)) -> PostgreSQLRequestRepository:
@@ -435,6 +475,8 @@ def get_current_admin_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
         )
+    
+    return claims.get("user_id")
 
 
 # ============= Plan Dependencies =============

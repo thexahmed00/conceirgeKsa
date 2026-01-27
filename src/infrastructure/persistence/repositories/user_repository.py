@@ -157,3 +157,24 @@ class PostgreSQLUserRepository:
         ).all()
         
         return [self._to_entity(m) for m in models]
+
+    def find_all(self, skip: int = 0, limit: int = 100):
+        """Retrieve all users with pagination.
+        
+        Args:
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            
+        Returns:
+            List of User entities
+        """
+        models = self._session.query(UserModel).offset(skip).limit(limit).all()
+        return [self._to_entity(m) for m in models]
+
+    def count_all(self) -> int:
+        """Count total number of users.
+        
+        Returns:
+            Total user count
+        """
+        return self._session.query(UserModel).count()

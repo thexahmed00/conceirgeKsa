@@ -12,6 +12,7 @@ from src.infrastructure.web.api.routers import requests
 from src.infrastructure.web.api.routers import conversations
 from src.infrastructure.web.api.routers import users
 from src.infrastructure.web.api.routers import admin
+from src.infrastructure.web.api.routers import admin_users
 from src.infrastructure.web.api.routers import websocket_docs
 from src.infrastructure.web.api.routers import services
 from src.infrastructure.web.api.routers import admin_services
@@ -110,6 +111,7 @@ app.include_router(users.router)
 app.include_router(requests.router)
 app.include_router(conversations.router)
 app.include_router(admin.router)
+app.include_router(admin_users.router)
 app.include_router(services.router)
 app.include_router(admin_services.router)
 app.include_router(websocket_docs.router)  # WebSocket documentation endpoint
