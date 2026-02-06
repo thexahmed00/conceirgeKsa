@@ -31,6 +31,14 @@ from src.application.service.use_cases.service_category_use_cases import (
     CreateCategoryUseCase,
     UpdateCategoryUseCase,
 )
+from src.application.service.use_cases.service_subcategory_use_cases import (
+    CreateSubcategoryUseCase,
+    UpdateSubcategoryUseCase,
+    GetSubcategoryUseCase,
+    ListSubcategoriesByCategoryUseCase,
+    ListAllSubcategoriesUseCase,
+    DeleteSubcategoryUseCase,
+)
 from src.application.service.use_cases.service_vendor_use_cases import (
     ListVendorsByCategoryUseCase,
     GetVendorDetailUseCase,
@@ -74,6 +82,7 @@ from src.infrastructure.persistence.repositories.request_repository import (
 )
 from src.infrastructure.persistence.repositories.user_repository import PostgreSQLUserRepository
 from src.infrastructure.persistence.repositories.service_category_repository import ServiceCategoryRepository
+from src.infrastructure.persistence.repositories.service_subcategory_repository_impl import ServiceSubcategoryRepositoryImpl
 from src.infrastructure.persistence.repositories.service_vendor_repository import ServiceVendorRepository
 from src.infrastructure.persistence.repositories.vendor_image_repository import VendorImageRepository
 from src.infrastructure.persistence.repositories.booking_repository import BookingRepository
@@ -365,11 +374,65 @@ def get_create_category_use_case(
     return CreateCategoryUseCase(category_repo)
 
 
+
+
 def get_update_category_use_case(
     category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
 ) -> UpdateCategoryUseCase:
     """Provide use case for updating a category (admin)."""
     return UpdateCategoryUseCase(category_repo)
+
+
+# =============================================================================
+# Service Subcategory Dependencies
+# =============================================================================
+
+def get_service_subcategory_repository(db: Session = Depends(get_db)):
+    """Provide a service subcategory repository."""
+    return ServiceSubcategoryRepositoryImpl(db)
+
+
+def get_create_subcategory_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+) -> CreateSubcategoryUseCase:
+    """Provide use case for creating a subcategory (admin)."""
+    return CreateSubcategoryUseCase(subcategory_repo, category_repo)
+
+
+def get_update_subcategory_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> UpdateSubcategoryUseCase:
+    """Provide use case for updating a subcategory (admin)."""
+    return UpdateSubcategoryUseCase(subcategory_repo)
+
+
+def get_get_subcategory_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> GetSubcategoryUseCase:
+    """Provide use case for getting a subcategory."""
+    return GetSubcategoryUseCase(subcategory_repo)
+
+
+def get_list_subcategories_by_category_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> ListSubcategoriesByCategoryUseCase:
+    """Provide use case for listing subcategories by category."""
+    return ListSubcategoriesByCategoryUseCase(subcategory_repo)
+
+
+def get_list_all_subcategories_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> ListAllSubcategoriesUseCase:
+    """Provide use case for listing all subcategories."""
+    return ListAllSubcategoriesUseCase(subcategory_repo)
+
+
+def get_delete_subcategory_use_case(
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> DeleteSubcategoryUseCase:
+    """Provide use case for deleting a subcategory (admin)."""
+    return DeleteSubcategoryUseCase(subcategory_repo)
 
 
 def get_list_vendors_by_category_use_case(

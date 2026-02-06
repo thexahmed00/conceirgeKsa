@@ -507,6 +507,44 @@ class ServiceCategoryUpdateDTO(BaseModel):
 
 
 # =============================================================================
+# Service Subcategory DTOs
+# =============================================================================
+
+class ServiceSubcategoryResponseDTO(BaseModel):
+    """Output for service subcategory."""
+    id: int
+    category_id: int
+    slug: str
+    name: str
+    icon_url: Optional[str] = None
+    display_order: int
+    
+    class Config:
+        from_attributes = True
+
+
+class ServiceSubcategoryListResponseDTO(BaseModel):
+    """List of all service subcategories."""
+    subcategories: List[ServiceSubcategoryResponseDTO]
+
+
+class ServiceSubcategoryCreateDTO(BaseModel):
+    """Input for creating a service subcategory."""
+    category_id: int = Field(..., gt=0, description="Parent category ID")
+    slug: str = Field(..., min_length=2, description="Subcategory slug (unique within category)")
+    name: str = Field(..., min_length=2, description="Display name")
+    display_order: int = Field(0, description="Display ordering integer")
+    icon_url: Optional[str] = Field(None, description="Optional icon URL for the subcategory")
+
+
+class ServiceSubcategoryUpdateDTO(BaseModel):
+    """Input for updating a service subcategory."""
+    name: Optional[str] = Field(None, min_length=2)
+    display_order: Optional[int] = None
+    icon_url: Optional[str] = None
+
+
+# =============================================================================
 # Vendor Image DTOs
 # =============================================================================
 
