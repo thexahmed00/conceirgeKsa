@@ -79,9 +79,10 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("AJLA API starting up...")
-    # Database schema is managed by Alembic migrations (run before app startup in Docker/EC2)
-    # init_db() is no longer called—migrations ensure schema is up-to-date
-    logger.info("Database ready (migrations applied)")
+    # TODO: Alembic migrations temporarily disabled due to broken dependency chain
+    # Restore init_db() until migration chain is fixed locally
+    init_db()
+    logger.info("Database initialized")
     
     # Start background scheduler for periodic tasks
     start_scheduler()

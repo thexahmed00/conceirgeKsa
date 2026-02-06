@@ -13,5 +13,5 @@ COPY . .
 # Expose port
 EXPOSE 8080
 
-# Run database migrations and start the application
-CMD sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port \${PORT:-8080} --proxy-headers"
+# TODO: Alembic migrations temporarily disabled—restore when dependency chain is fixed
+CMD sh -c "uvicorn main:app --host 0.0.0.0 --port \${PORT:-8080} --proxy-headers"
