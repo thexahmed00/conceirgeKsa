@@ -13,6 +13,10 @@ from src.application.service.dto.service_dto import (
     ServiceCategoryResponseDTO,
     ServiceCategoryCreateDTO,
     ServiceCategoryUpdateDTO,
+    ServiceSubcategoryResponseDTO,
+    ServiceSubcategoryCreateDTO,
+    ServiceSubcategoryUpdateDTO,
+    ServiceSubcategoryListResponseDTO,
 )
 from src.application.service.use_cases.admin_vendor_use_cases import (
     CreateVendorUseCase,
@@ -41,6 +45,13 @@ from src.infrastructure.web.dependencies import (
     get_create_category_use_case,
     get_update_category_use_case,
     get_service_category_repository,
+    get_create_subcategory_use_case,
+    get_update_subcategory_use_case,
+    get_get_subcategory_use_case,
+    get_list_subcategories_by_category_use_case,
+    get_list_all_subcategories_use_case,
+    get_delete_subcategory_use_case,
+    get_service_subcategory_repository,
 )
 from src.shared.logger.config import get_logger
 
@@ -215,6 +226,89 @@ def delete_category(
 
     logger.info(f"Category deleted: id={category_id}, by admin={admin_id}")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# =============================================================================
+# Service Subcategories (admin)
+# =============================================================================
+
+@router.post("/subcategories", response_model=ServiceSubcategoryResponseDTO, status_code=status.HTTP_201_CREATED)
+def create_subcategory(
+    dto: ServiceSubcategoryCreateDTO,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_create_subcategory_use_case),
+) -> ServiceSubcategoryResponseDTO:
+    """Create a new service subcategory (admin only)."""
+    try:
+        result = use_case.execute(dto)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    logger.info(f"Subcategory created: id={result.id}, slug={result.slug}, category_id={result.category_id}, by admin={admin_id}")
+    return result
+
+
+@router.get("/subcategories", response_model=ServiceSubcategoryListResponseDTO)
+def list_all_subcategories(
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_list_all_subcategories_use_case),
+) -> ServiceSubcategoryListResponseDTO:
+    """List all service subcategories (admin view)."""
+    return use_case.execute()
+
+
+@router.get("/subcategories/{subcategory_id}", response_model=ServiceSubcategoryResponseDTO)
+def get_subcategory(
+    subcategory_id: int,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_get_subcategory_use_case),
+) -> ServiceSubcategoryResponseDTO:
+    """Get a specific subcategory by ID (admin view)."""
+    try:
+        return use_case.execute(subcategory_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Subcategory not found")
+
+
+@router.get("/categories/{category_id}/subcategories", response_model=ServiceSubcategoryListResponseDTO)
+def list_category_subcategories(
+    category_id: int,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_list_subcategories_by_category_use_case),
+) -> ServiceSubcategoryListResponseDTO:
+    """List all subcategories for a specific category (admin view)."""
+    return use_case.execute(category_id)
+
+
+@router.put("/subcategories/{subcategory_id}", response_model=ServiceSubcategoryResponseDTO)
+def update_subcategory(
+    subcategory_id: int,
+    dto: ServiceSubcategoryUpdateDTO,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_update_subcategory_use_case),
+) -> ServiceSubcategoryResponseDTO:
+    """Update an existing service subcategory (admin only)."""
+    try:
+        result = use_case.execute(subcategory_id, dto)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Subcategory not found")
+    
+    logger.info(f"Subcategory updated: id={subcategory_id}, by admin={admin_id}")
+    return result
+
+
+@router.delete("/subcategories/{subcategory_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_subcategory(
+    subcategory_id: int,
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_delete_subcategory_use_case),
+) -> None:
+    """Delete a service subcategory (admin only)."""
+    success = use_case.execute(subcategory_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Subcategory not found")
+    
+    logger.info(f"Subcategory deleted: id={subcategory_id}, by admin={admin_id}")
 
 
 @router.delete("/vendors/{vendor_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)

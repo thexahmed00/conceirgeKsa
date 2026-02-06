@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, Query, Response
 
 from src.application.service.dto.service_dto import (
     ServiceCategoryListResponseDTO,
+    ServiceSubcategoryListResponseDTO,
     VendorListResponseDTO,
     VendorDetailDTO,
     VendorImageDTO,
 )
 from src.application.service.use_cases.service_category_use_cases import ListCategoriesUseCase
+from src.application.service.use_cases.service_subcategory_use_cases import ListSubcategoriesByCategoryUseCase
 from src.application.service.use_cases.service_vendor_use_cases import (
     ListVendorsByCategoryUseCase,
     GetVendorDetailUseCase,
@@ -16,6 +18,7 @@ from src.application.service.use_cases.service_vendor_use_cases import (
 from src.application.service.use_cases.vendor_image_use_cases import GetVendorImageUseCase
 from src.infrastructure.web.dependencies import (
     get_list_categories_use_case,
+    get_list_subcategories_by_category_use_case,
     get_list_vendors_by_category_use_case,
     get_vendor_detail_use_case,
     get_vendor_image_use_case,
@@ -41,6 +44,19 @@ def list_categories(
     """
     return use_case.execute()
 
+
+@router.get("/categories/{category_id}/subcategories", response_model=ServiceSubcategoryListResponseDTO)
+def list_category_subcategories(
+    category_id: int,
+    use_case: ListSubcategoriesByCategoryUseCase = Depends(get_list_subcategories_by_category_use_case),
+) -> ServiceSubcategoryListResponseDTO:
+    """
+    List all subcategories for a specific category.
+    
+    Example: Get all subcategories under the "restaurant" category
+    (e.g., Italian, Chinese, Indian, etc.)
+    """
+    return use_case.execute(category_id)
 
 
 # Support both: /categories/{category_slug}/vendors and /vendors (category optional)

@@ -23,6 +23,7 @@ class ServiceCategoryModel(Base):
     
     # Relationships
     vendors = relationship("ServiceVendorModel", back_populates="category", cascade="all, delete-orphan")
+    subcategories = relationship("ServiceSubcategoryModel", back_populates="category", cascade="all, delete-orphan")
     
     __table_args__ = (
         Index('idx_category_slug', 'slug'),
@@ -32,6 +33,32 @@ class ServiceCategoryModel(Base):
     
     def __repr__(self) -> str:
         return f"<ServiceCategoryModel(id={self.id}, slug={self.slug})>"
+
+
+class ServiceSubcategoryModel(Base):
+    """SQLAlchemy model for service subcategories (e.g., Italian restaurant under Restaurant category)."""
+    
+    __tablename__ = "service_subcategories"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    category_id = Column(Integer, ForeignKey("service_categories.id"), nullable=False)
+    slug = Column(String(50), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+    icon_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Relationships
+    category = relationship("ServiceCategoryModel", back_populates="subcategories")
+    
+    __table_args__ = (
+        Index('idx_subcategory_category_id', 'category_id'),
+        Index('idx_subcategory_slug', 'slug'),
+        Index('idx_subcategory_display_order', 'display_order'),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<ServiceSubcategoryModel(id={self.id}, category_id={self.category_id}, slug={self.slug})>"
 
 
 class ServiceVendorModel(Base):
