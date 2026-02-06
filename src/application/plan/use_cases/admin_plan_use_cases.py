@@ -2,6 +2,7 @@
 
 import json
 from src.domain.plan.entities.plan import Plan
+from src.domain.plan.entities.plan_tier import PlanTier
 from src.domain.plan.repository.plan_repository import PlanRepository
 from src.domain.shared.exceptions import ResourceNotFoundError
 from src.application.plan.dto.plan_dto import PlanDTO
@@ -19,13 +20,17 @@ class CreatePlanUseCase:
         description: str,
         price: float,
         duration_days: int,
-        tier: int,
+        tier: PlanTier,
         features: list = None,
         is_active: bool = True,
     ) -> PlanDTO:
         """Execute the use case."""
         # Convert features list to JSON string
         features_json = json.dumps(features) if features else None
+        
+        # Ensure tier is PlanTier enum
+        if isinstance(tier, str):
+            tier = PlanTier(tier)
         
         plan = Plan(
             plan_id=0,  # Will be set by repository
@@ -70,7 +75,7 @@ class UpdatePlanUseCase:
         description: str = None,
         price: float = None,
         duration_days: int = None,
-        tier: int = None,
+        tier: PlanTier = None,
         features: list = None,
         is_active: bool = None,
     ) -> PlanDTO:
@@ -89,6 +94,9 @@ class UpdatePlanUseCase:
         if duration_days is not None:
             plan.duration_days = duration_days
         if tier is not None:
+            # Ensure tier is PlanTier enum
+            if isinstance(tier, str):
+                tier = PlanTier(tier)
             plan.tier = tier
         if features is not None:
             plan.features = json.dumps(features)

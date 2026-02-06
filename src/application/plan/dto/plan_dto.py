@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from src.domain.plan.entities.plan_tier import PlanTier
 
 
 class PlanDTO(BaseModel):
@@ -12,7 +13,7 @@ class PlanDTO(BaseModel):
     description: str
     price: float
     duration_days: int
-    tier: int
+    tier: PlanTier
     features: Optional[List[str]] = None
     is_active: bool = True
     created_at: datetime
@@ -20,6 +21,7 @@ class PlanDTO(BaseModel):
 
     class Config:
         from_attributes = True
+        use_enum_values = False
 
 
 class PlanListResponseDTO(BaseModel):
@@ -80,7 +82,7 @@ class CreatePlanRequestDTO(BaseModel):
     description: str = Field(..., description="Plan description")
     price: float = Field(..., ge=0, description="Plan price")
     duration_days: int = Field(..., gt=0, description="Duration in days")
-    tier: int = Field(..., ge=0, description="Tier level")
+    tier: PlanTier = Field(..., description="Tier level (Lifestyle, Traveller, Elite)")
     features: Optional[List[str]] = Field(default=None, description="List of features")
     is_active: bool = Field(default=True, description="Whether plan is active")
 
@@ -91,6 +93,6 @@ class UpdatePlanRequestDTO(BaseModel):
     description: Optional[str] = Field(None, description="Plan description")
     price: Optional[float] = Field(None, ge=0, description="Plan price")
     duration_days: Optional[int] = Field(None, gt=0, description="Duration in days")
-    tier: Optional[int] = Field(None, ge=0, description="Tier level")
+    tier: Optional[PlanTier] = Field(None, description="Tier level (Lifestyle, Traveller, Elite)")
     features: Optional[List[str]] = Field(None, description="List of features")
     is_active: Optional[bool] = Field(None, description="Whether plan is active")

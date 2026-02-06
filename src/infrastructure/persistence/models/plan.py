@@ -7,6 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from src.infrastructure.persistence.models.user import Base
+from src.domain.plan.entities.plan_tier import PlanTier
 from src.domain.plan.entities.subscription import SubscriptionStatus
 
 
@@ -20,7 +21,15 @@ class PlanModel(Base):
     description = Column(Text, nullable=False)
     price = Column(Float, nullable=False)
     duration_days = Column(Integer, nullable=False)  # 30, 365, etc.
-    tier = Column(Integer, nullable=False)  # 5000, 10000, 15000, etc.
+    # Use the Enum values (not member names) so DB labels like 'Lifestyle' map correctly
+    tier = Column(
+        SQLEnum(
+            PlanTier,
+            name='plan_tier',
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
+        nullable=False,
+    )  # Lifestyle, Traveller, Elite
     features = Column(Text, nullable=True)  # JSON string of features
     is_active = Column(Boolean, nullable=False, default=True)
     

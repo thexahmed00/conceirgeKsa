@@ -38,7 +38,8 @@ class ListPlansUseCase:
             if plan.features:
                 try:
                     features = json.loads(plan.features)
-                except:
+                except (json.JSONDecodeError, TypeError):
+                    # Log warning but don't fail, return empty list
                     features = []
             
             plan_dtos.append(PlanDTO(

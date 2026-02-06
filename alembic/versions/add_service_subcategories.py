@@ -1,7 +1,7 @@
 """Add service subcategories table.
 
 Revision ID: add_service_subcategories
-Revises: add_vendor_city
+Revises: add_cities_seed_data
 Create Date: 2026-02-02 12:00:00.000000
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = 'add_service_subcategories'
-down_revision = 'add_vendor_city'
+down_revision = 'add_cities_seed_data'
 branch_labels = None
 depends_on = None
 

@@ -1,5 +1,6 @@
 """Admin Plans API endpoints - plan management."""
 
+import json
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
@@ -44,21 +45,17 @@ async def list_all_plans(
     """
     List all plans including inactive ones (admin only).
     """
-    use_case = ListPlansUseCase(plan_repo)
-    # Get all plans, not just active ones
     plans = plan_repo.find_all(active_only=False)
     
-    import json
     plan_dtos = []
     for plan in plans:
         features = None
         if plan.features:
             try:
                 features = json.loads(plan.features)
-            except:
+            except (json.JSONDecodeError, TypeError):
                 features = []
         
-        from src.application.plan.dto.plan_dto import PlanDTO
         plan_dtos.append(PlanDTO(
             id=plan.plan_id,
             name=plan.name,
