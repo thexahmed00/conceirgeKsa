@@ -7,6 +7,7 @@ and API request/response formatting.
 from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
+from src.domain.plan.entities.plan_tier import PlanTier
 
 
 class UserCreateRequest(BaseModel):
@@ -54,7 +55,7 @@ class UserResponse(BaseModel):
     last_name: str = Field(..., description="Last name")
     full_name: str = Field(..., description="Full name")
     phone_number: Optional[str] = Field(None, description="Phone number")
-    tier: int = Field(..., description="User tier (5000, 25000, 100000)")
+    tier: Optional[PlanTier] = Field(None, description="User tier (Lifestyle, Traveller, Elite)")
     is_active: bool = Field(..., description="Whether user is active")
     is_admin: bool = Field(default=False, description="Whether user is an admin")
     created_at: datetime = Field(..., description="Account creation date")
@@ -70,7 +71,7 @@ class UserResponse(BaseModel):
                 "last_name": "Doe",
                 "full_name": "John Doe",
                 "phone_number": "+966501234567",
-                "tier": 5000,
+                "tier": "Lifestyle",
                 "is_active": True,
                 "is_admin": False,
                 "created_at": "2024-01-01T12:00:00Z",
@@ -102,7 +103,7 @@ class AdminUserUpdateRequest(BaseModel):
     first_name: Optional[str] = Field(None, min_length=1, description="First name")
     last_name: Optional[str] = Field(None, min_length=1, description="Last name")
     phone_number: Optional[str] = Field(None, description="Phone number")
-    tier: Optional[int] = Field(None, ge=5000, description="User tier")
+    tier: Optional[PlanTier] = Field(None, description="User tier (Lifestyle, Traveller, Elite)")
     is_active: Optional[bool] = Field(None, description="Whether user is active")
     is_admin: Optional[bool] = Field(None, description="Whether user is an admin")
     
@@ -112,7 +113,7 @@ class AdminUserUpdateRequest(BaseModel):
                 "first_name": "Jane",
                 "last_name": "Smith",
                 "phone_number": "+966501234567",
-                "tier": 25000,
+                "tier": "Traveller",
                 "is_active": True,
                 "is_admin": False,
             }
@@ -138,7 +139,7 @@ class UserListResponse(BaseModel):
                         "last_name": "Doe",
                         "full_name": "John Doe",
                         "phone_number": "+966501234567",
-                        "tier": 5000,
+                        "tier": "Lifestyle",
                         "is_active": True,
                         "is_admin": False,
                         "created_at": "2024-01-01T12:00:00Z",

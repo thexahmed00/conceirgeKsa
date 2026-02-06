@@ -1,9 +1,10 @@
 """SQLAlchemy User model - Database ORM representation."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Index
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Index, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from src.domain.plan.entities.plan_tier import PlanTier
 
 Base = declarative_base()
 
@@ -23,7 +24,16 @@ class UserModel(Base):
     last_name = Column(String(128), nullable=False)
     full_name = Column(String(256), nullable=False)
     phone_number = Column(String(20), nullable=True)
-    tier = Column(Integer, nullable=False, default=5000)
+    tier = Column(
+        SQLEnum(
+            PlanTier,
+            name='plan_tier',
+            values_callable=lambda enum: [e.value for e in enum],
+            create_type=False,  # Don't create type, already exists from plans table
+        ),
+        nullable=True,
+        default=PlanTier.LIFESTYLE,
+    )
     is_active = Column(Boolean, nullable=False, default=True)
     is_admin = Column(Boolean, nullable=False, default=False)  # Admin flag
     
