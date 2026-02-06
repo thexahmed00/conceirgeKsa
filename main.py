@@ -79,9 +79,9 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("AJLA API starting up...")
-    # Initialize DB tables (creates missing tables in dev). In production use Alembic migrations.
-    init_db()
-    logger.info("Database initialized")
+    # Database schema is managed by Alembic migrations (run before app startup in Docker/EC2)
+    # init_db() is no longer called—migrations ensure schema is up-to-date
+    logger.info("Database ready (migrations applied)")
     
     # Start background scheduler for periodic tasks
     start_scheduler()
