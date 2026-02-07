@@ -4,12 +4,16 @@ from fastapi import APIRouter, Depends, Query, Response
 
 from src.application.service.dto.service_dto import (
     ServiceCategoryListResponseDTO,
+    ServiceCategoryWithSubcategoriesListResponseDTO,
     ServiceSubcategoryListResponseDTO,
     VendorListResponseDTO,
     VendorDetailDTO,
     VendorImageDTO,
 )
-from src.application.service.use_cases.service_category_use_cases import ListCategoriesUseCase
+from src.application.service.use_cases.service_category_use_cases import (
+    ListCategoriesUseCase,
+    ListCategoriesWithSubcategoriesUseCase,
+)
 from src.application.service.use_cases.service_subcategory_use_cases import ListSubcategoriesByCategoryUseCase
 from src.application.service.use_cases.service_vendor_use_cases import (
     ListVendorsByCategoryUseCase,
@@ -18,6 +22,7 @@ from src.application.service.use_cases.service_vendor_use_cases import (
 from src.application.service.use_cases.vendor_image_use_cases import GetVendorImageUseCase
 from src.infrastructure.web.dependencies import (
     get_list_categories_use_case,
+    get_list_categories_with_subcategories_use_case,
     get_list_subcategories_by_category_use_case,
     get_list_vendors_by_category_use_case,
     get_vendor_detail_use_case,
@@ -41,6 +46,19 @@ def list_categories(
     List all service categories.
     
     Returns categories like: restaurant, private_jet, flight, car, hotel, car_driver
+    """
+    return use_case.execute()
+
+
+@router.get("/categories-with-subcategories", response_model=ServiceCategoryWithSubcategoriesListResponseDTO)
+def list_categories_with_subcategories(
+    use_case: ListCategoriesWithSubcategoriesUseCase = Depends(get_list_categories_with_subcategories_use_case),
+) -> ServiceCategoryWithSubcategoriesListResponseDTO:
+    """
+    List all service categories with their subcategories nested.
+    
+    Returns the full category tree in a single call — each category
+    includes its list of subcategories.
     """
     return use_case.execute()
 

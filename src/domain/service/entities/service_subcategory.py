@@ -67,12 +67,18 @@ class ServiceSubcategory:
         name: Optional[str] = None,
         display_order: Optional[int] = None,
         icon_url: Optional[str] = None,
+        category_id: Optional[int] = None,
     ) -> None:
         """Update subcategory details."""
         if name is not None:
             if len(name.strip()) < 2:
                 raise InvalidSubcategoryError("Subcategory name must be at least 2 characters")
             self.name = name.strip()
+        
+        if category_id is not None:
+            if category_id <= 0:
+                raise InvalidSubcategoryError("Category ID must be a positive integer")
+            self.category_id = category_id
         
         if display_order is not None:
             self.display_order = display_order

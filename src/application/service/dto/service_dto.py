@@ -485,9 +485,27 @@ class ServiceCategoryResponseDTO(BaseModel):
         from_attributes = True
 
 
+class ServiceCategoryWithSubcategoriesDTO(BaseModel):
+    """Output for service category with nested subcategories."""
+    id: int
+    slug: str
+    name: str
+    icon_url: Optional[str] = None
+    display_order: int
+    subcategories: List["ServiceSubcategoryResponseDTO"] = []
+
+    class Config:
+        from_attributes = True
+
+
 class ServiceCategoryListResponseDTO(BaseModel):
     """List of all service categories."""
     categories: List[ServiceCategoryResponseDTO]
+
+
+class ServiceCategoryWithSubcategoriesListResponseDTO(BaseModel):
+    """List of all service categories with nested subcategories."""
+    categories: List[ServiceCategoryWithSubcategoriesDTO]
 
 
 # Admin input DTOs for categories
@@ -497,6 +515,7 @@ class ServiceCategoryCreateDTO(BaseModel):
     name: str = Field(..., min_length=2, description="Display name")
     display_order: int = Field(0, description="Display ordering integer")
     icon_url: Optional[str] = Field(None, description="Optional icon URL for the category")
+    subcategory_ids: Optional[List[int]] = Field(None, description="IDs of existing subcategories to attach to this category")
 
 
 class ServiceCategoryUpdateDTO(BaseModel):
@@ -539,6 +558,7 @@ class ServiceSubcategoryCreateDTO(BaseModel):
 
 class ServiceSubcategoryUpdateDTO(BaseModel):
     """Input for updating a service subcategory."""
+    category_id: Optional[int] = Field(None, gt=0, description="Move subcategory to a different category")
     name: Optional[str] = Field(None, min_length=2)
     display_order: Optional[int] = None
     icon_url: Optional[str] = None

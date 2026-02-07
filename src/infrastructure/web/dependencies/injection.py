@@ -28,6 +28,7 @@ from src.application.conversation.use_cases.conversation_use_cases import (
 )
 from src.application.service.use_cases.service_category_use_cases import (
     ListCategoriesUseCase,
+    ListCategoriesWithSubcategoriesUseCase,
     CreateCategoryUseCase,
     UpdateCategoryUseCase,
 )
@@ -367,11 +368,19 @@ def get_list_categories_use_case(
     return ListCategoriesUseCase(category_repo)
 
 
+def get_list_categories_with_subcategories_use_case(
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+) -> ListCategoriesWithSubcategoriesUseCase:
+    """Provide use case for listing categories with nested subcategories."""
+    return ListCategoriesWithSubcategoriesUseCase(category_repo)
+
+
 def get_create_category_use_case(
     category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+    subcategory_repo = Depends(get_service_subcategory_repository),
 ) -> CreateCategoryUseCase:
     """Provide use case for creating a category (admin)."""
-    return CreateCategoryUseCase(category_repo)
+    return CreateCategoryUseCase(category_repo, subcategory_repo)
 
 
 
@@ -402,9 +411,10 @@ def get_create_subcategory_use_case(
 
 def get_update_subcategory_use_case(
     subcategory_repo = Depends(get_service_subcategory_repository),
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
 ) -> UpdateSubcategoryUseCase:
     """Provide use case for updating a subcategory (admin)."""
-    return UpdateSubcategoryUseCase(subcategory_repo)
+    return UpdateSubcategoryUseCase(subcategory_repo, category_repo)
 
 
 def get_get_subcategory_use_case(

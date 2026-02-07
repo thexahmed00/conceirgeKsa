@@ -13,6 +13,8 @@ from src.application.service.dto.service_dto import (
     ServiceCategoryResponseDTO,
     ServiceCategoryCreateDTO,
     ServiceCategoryUpdateDTO,
+    ServiceCategoryWithSubcategoriesDTO,
+    ServiceCategoryWithSubcategoriesListResponseDTO,
     ServiceSubcategoryResponseDTO,
     ServiceSubcategoryCreateDTO,
     ServiceSubcategoryUpdateDTO,
@@ -44,6 +46,7 @@ from src.infrastructure.web.dependencies import (
     get_vendor_detail_use_case,
     get_create_category_use_case,
     get_update_category_use_case,
+    get_list_categories_with_subcategories_use_case,
     get_service_category_repository,
     get_create_subcategory_use_case,
     get_update_subcategory_use_case,
@@ -178,13 +181,22 @@ def add_vendor_image(
 # =============================================================================
 
 
-@router.post("/categories", response_model=ServiceCategoryResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.get("/categories-with-subcategories", response_model=ServiceCategoryWithSubcategoriesListResponseDTO)
+def list_categories_with_subcategories(
+    admin_id: int = Depends(get_current_admin_user),
+    use_case = Depends(get_list_categories_with_subcategories_use_case),
+) -> ServiceCategoryWithSubcategoriesListResponseDTO:
+    """List all categories with their subcategories nested (admin view)."""
+    return use_case.execute()
+
+
+@router.post("/categories", response_model=ServiceCategoryWithSubcategoriesDTO, status_code=status.HTTP_201_CREATED)
 def create_category(
     dto: ServiceCategoryCreateDTO,
     admin_id: int = Depends(get_current_admin_user),
     use_case = Depends(get_create_category_use_case),
-) -> ServiceCategoryResponseDTO:
-    """Create a new service category (admin only)."""
+):
+    """Create a new service category (admin only). Optionally attach existing subcategories."""
     try:
         result = use_case.execute(dto)
     except ValueError as e:

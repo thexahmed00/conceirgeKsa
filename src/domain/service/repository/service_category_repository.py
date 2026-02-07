@@ -29,6 +29,11 @@ class ServiceCategoryRepository(ABC):
         pass
     
     @abstractmethod
+    def find_all_with_subcategories(self) -> List[dict]:
+        """Find all categories with their subcategories loaded."""
+        pass
+    
+    @abstractmethod
     def update(self, category: ServiceCategory) -> ServiceCategory:
         """Update an existing category."""
         pass

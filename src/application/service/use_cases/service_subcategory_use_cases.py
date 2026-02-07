@@ -58,8 +58,13 @@ class CreateSubcategoryUseCase:
 class UpdateSubcategoryUseCase:
     """Update an existing service subcategory."""
     
-    def __init__(self, subcategory_repo: ServiceSubcategoryRepository):
+    def __init__(
+        self,
+        subcategory_repo: ServiceSubcategoryRepository,
+        category_repo: ServiceCategoryRepository,
+    ):
         self.subcategory_repo = subcategory_repo
+        self.category_repo = category_repo
     
     def execute(
         self,
@@ -71,11 +76,18 @@ class UpdateSubcategoryUseCase:
         if not subcategory:
             raise ValueError(f"Subcategory with ID {subcategory_id} not found")
         
+        # Validate new category exists if changing parent
+        if dto.category_id is not None and dto.category_id != subcategory.category_id:
+            category = self.category_repo.find_by_id(dto.category_id)
+            if not category:
+                raise ValueError(f"Category with ID {dto.category_id} not found")
+        
         try:
             subcategory.update(
                 name=dto.name,
                 display_order=dto.display_order,
                 icon_url=dto.icon_url,
+                category_id=dto.category_id,
             )
         except InvalidSubcategoryError as e:
             raise ValueError(str(e))

@@ -111,6 +111,7 @@ class ServiceSubcategoryRepositoryImpl(ServiceSubcategoryRepository):
         model.name = subcategory.name
         model.display_order = subcategory.display_order
         model.icon_url = subcategory.icon_url
+        model.category_id = subcategory.category_id
         
         self.db.commit()
         self.db.refresh(model)

@@ -4,9 +4,11 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from src.domain.service.entities.service_category import ServiceCategory
+from src.domain.service.entities.service_subcategory import ServiceSubcategory
 from src.domain.service.repository.service_category_repository import ServiceCategoryRepository as IServiceCategoryRepository
-from src.infrastructure.persistence.models.service import ServiceCategoryModel
+from src.infrastructure.persistence.models.service import ServiceCategoryModel, ServiceSubcategoryModel
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 
 class ServiceCategoryRepository(IServiceCategoryRepository):
@@ -60,6 +62,35 @@ class ServiceCategoryRepository(IServiceCategoryRepository):
             .all()
         )
         return [self._to_entity(c) for c in db_categories]
+    
+    def find_all_with_subcategories(self) -> List[dict]:
+        """Find all categories with their subcategories eagerly loaded."""
+        db_categories = (
+            self.db.query(ServiceCategoryModel)
+            .options(joinedload(ServiceCategoryModel.subcategories))
+            .order_by(ServiceCategoryModel.display_order.asc())
+            .all()
+        )
+        result = []
+        for cat in db_categories:
+            category_entity = self._to_entity(cat)
+            subcategory_entities = [
+                ServiceSubcategory(
+                    subcategory_id=sc.id,
+                    category_id=sc.category_id,
+                    slug=sc.slug,
+                    name=sc.name,
+                    display_order=sc.display_order,
+                    icon_url=sc.icon_url,
+                    created_at=sc.created_at,
+                )
+                for sc in sorted(cat.subcategories, key=lambda s: s.display_order)
+            ]
+            result.append({
+                "category": category_entity,
+                "subcategories": subcategory_entities,
+            })
+        return result
     
     def update(self, category: ServiceCategory) -> ServiceCategory:
         """Update an existing category."""
