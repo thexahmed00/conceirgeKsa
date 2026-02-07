@@ -485,6 +485,24 @@ class ServiceCategoryResponseDTO(BaseModel):
         from_attributes = True
 
 
+# =============================================================================
+# Service Subcategory DTOs
+# =============================================================================
+
+class ServiceSubcategoryResponseDTO(BaseModel):
+    """Output for service subcategory."""
+    id: int
+    category_id: int
+    slug: str
+    name: str
+    icon_url: Optional[str] = None
+    display_order: int
+    
+    class Config:
+        from_attributes = True
+
+
+# Category DTOs that reference subcategories (must come after ServiceSubcategoryResponseDTO)
 class ServiceCategoryWithSubcategoriesDTO(BaseModel):
     """Output for service category with nested subcategories."""
     id: int
@@ -492,7 +510,7 @@ class ServiceCategoryWithSubcategoriesDTO(BaseModel):
     name: str
     icon_url: Optional[str] = None
     display_order: int
-    subcategories: List["ServiceSubcategoryResponseDTO"] = []
+    subcategories: List[ServiceSubcategoryResponseDTO] = []
 
     class Config:
         from_attributes = True
@@ -523,23 +541,6 @@ class ServiceCategoryUpdateDTO(BaseModel):
     name: Optional[str] = Field(None, min_length=2)
     display_order: Optional[int] = None
     icon_url: Optional[str] = None
-
-
-# =============================================================================
-# Service Subcategory DTOs
-# =============================================================================
-
-class ServiceSubcategoryResponseDTO(BaseModel):
-    """Output for service subcategory."""
-    id: int
-    category_id: int
-    slug: str
-    name: str
-    icon_url: Optional[str] = None
-    display_order: int
-    
-    class Config:
-        from_attributes = True
 
 
 class ServiceSubcategoryListResponseDTO(BaseModel):

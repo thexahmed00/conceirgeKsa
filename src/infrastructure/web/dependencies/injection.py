@@ -375,16 +375,6 @@ def get_list_categories_with_subcategories_use_case(
     return ListCategoriesWithSubcategoriesUseCase(category_repo)
 
 
-def get_create_category_use_case(
-    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
-    subcategory_repo = Depends(get_service_subcategory_repository),
-) -> CreateCategoryUseCase:
-    """Provide use case for creating a category (admin)."""
-    return CreateCategoryUseCase(category_repo, subcategory_repo)
-
-
-
-
 def get_update_category_use_case(
     category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
 ) -> UpdateCategoryUseCase:
@@ -399,6 +389,14 @@ def get_update_category_use_case(
 def get_service_subcategory_repository(db: Session = Depends(get_db)):
     """Provide a service subcategory repository."""
     return ServiceSubcategoryRepositoryImpl(db)
+
+
+def get_create_category_use_case(
+    category_repo: ServiceCategoryRepository = Depends(get_service_category_repository),
+    subcategory_repo = Depends(get_service_subcategory_repository),
+) -> CreateCategoryUseCase:
+    """Provide use case for creating a category (admin)."""
+    return CreateCategoryUseCase(category_repo, subcategory_repo)
 
 
 def get_create_subcategory_use_case(
